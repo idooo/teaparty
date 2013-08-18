@@ -3,28 +3,15 @@ define([], function() {
 
         $scope.blocks = []
 
-        $http.get('/get_instances').success(function(data) {
-            $scope.instances = data;
-        });
+        // Request init data from server
+        socket.emit('init')
 
-        $http.get('/get_alarms').success(function(data) {
-            $scope.alarms = data;
+        socket.on('response:init', function (data) {
+            _.each(['instances', 'alarms'], function(param){
+                $scope[param] = data[param];
+            });
+            $scope.blocks.push(data['elb'])
         });
-
-        $http.get('/get_elb').success(function(data) {
-            data.type = 'ELB';
-            $scope.blocks.push(data);
-        });
-
-        socket.on('message', function (data) {
-            console.log(data);
-        });
-
-        $scope.sendMessage = function() {
-            socket.emit('say', {
-                msg: 'pssst'
-            })
-        }
 
         $scope.$apply();
     }];

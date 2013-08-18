@@ -1,14 +1,19 @@
 require.config({
     paths: {
+        underscore: 'lib/underscore/underscore',
+        socketio: 'lib/socketio/socket.io',
         angular: 'lib/angular/angular',
         text: 'lib/require/text'
     },
-    baseUrl: '',
-    // For dev purposes
+
+    // prevent caching for dev purposes
     urlArgs: "v=" + (new Date()).getTime(),
+
     shim: {
-        'angular' : {'exports' : 'angular'},
-        'angularMocks': {deps:['angular'], 'exports':'angular.mock'}
+        'angular' : {
+            'deps': ['underscore', 'socketio'],
+            'exports' : 'angular'
+        }
     },
     priority: [
         "angular"

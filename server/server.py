@@ -1,5 +1,4 @@
 
-import src as library
 from src.sockets import TeapartyNamespace
 from flask import Flask, render_template, Response, request, jsonify
 
@@ -9,6 +8,7 @@ from socketio import socketio_manage
 from socketio.server import SocketIOServer
 
 SOCKET_URL = '/socket'
+PORT = 5000
 
 app = Flask(
 	__name__,
@@ -18,23 +18,9 @@ app = Flask(
 )
 monkey.patch_all()
 
-response = library.ResponseMocker()
-
 @app.route("/")
 def main():
 	return render_template('index.html')
-
-@app.route("/get_instances")
-def get_instances():
-	return jsonify(response.getInstances())
-
-@app.route("/get_alarms")
-def get_alarms():
-	return jsonify(response.getAlarms())
-
-@app.route("/get_elb")
-def get_elb():
-	return jsonify(response.getELB())
 
 @app.route('/socket.io/<path:rest>')
 def push_stream(rest):
@@ -47,8 +33,7 @@ def push_stream(rest):
 @werkzeug.serving.run_with_reloader
 def run_dev_server():
 	app.debug = True
-	port = 5000
-	SocketIOServer(('', port), app, resource="socket.io").serve_forever()
+	SocketIOServer(('', PORT), app, resource="socket.io").serve_forever()
 
 if __name__ == "__main__":
 	run_dev_server()
