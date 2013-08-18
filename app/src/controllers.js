@@ -1,11 +1,13 @@
 define(['angular', 'src/services'], function (angular) {
 	'use strict';
 
-	return angular.module('teapartyApp.controllers', ['teapartyApp.services'])
+	var controllers = angular.module('teapartyApp.controllers', ['teapartyApp.services']);
 
-		.controller('DashboardController', ['$scope', '$injector', function($scope, $injector) {
-			require(['controllers/dashboard_ctrl'], function(dashctrl) {
-				$injector.invoke(dashctrl, this, {'$scope': $scope});
-			});
-		}]);
+    controllers.controller('DashboardController', ['$scope', '$injector', '$http', function($scope, $injector, $http) {
+        require(['src/controllers/dashboard'], function(dashctrl) {
+            $injector.invoke(dashctrl, this, {'$scope': $scope, '$http': $http});
+        });
+    }]);
+
+    return controllers;
 });

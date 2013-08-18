@@ -1,0 +1,39 @@
+<div class="overview">
+
+    <div class="instances">
+        <div ng-repeat="instance in instances.statuses" class="instance status-{{ instance.status }}" ></div>
+        <div class="clear"></div>
+    </div>
+
+    <div class="alarms">
+        <div ng-repeat="alarm in alarms.statuses" class="alarm status-{{ alarm.status }}"></div>
+        <div class="clear"></div>
+    </div>
+
+</div>
+
+<div ng-repeat="block in blocks" class="dashboard_block">
+
+    <div class="item">
+        <h3>{{block.name}}</h3>
+        <div class="metrics">
+            <div ng-repeat="metric in block.metrics">
+                <b>{{metric.value}}</b>{{metric.units}} {{metric.caption}}
+            </div>
+        </div>
+    </div>
+
+    <div ng-repeat="instance in block.instances" class="item">
+        <h4>{{instance.name}}</h4>
+        <b>{{instance.id}}</b>
+
+        <div class="metrics">
+            <div ng-repeat="metric in instance.metrics">
+                <b>{{metric.value}}</b>{{metric.units}} {{metric.caption}}
+            </div>
+        </div>
+    </div>
+
+    <div class="clear"></div>
+
+</div>

@@ -1,3 +1,45 @@
 body {
-  background-color: #dddddd;
+  background-color: white;
+}
+.clear {
+  clear: both;
+}
+.overview .instances {
+  padding-bottom: 10px;
+}
+.overview .instances .instance {
+  float: left;
+  height: 20px;
+  width: 20px;
+  margin-right: 10px;
+  border-radius: 10px;
+}
+.overview .instances .instance.status-1 {
+  background-color: green;
+}
+.overview .instances .instance.status-2 {
+  background-color: yellow;
+}
+.overview .instances .instance.status-3 {
+  background-color: red;
+}
+.overview .alarms .alarm {
+  float: left;
+  height: 10px;
+  width: 10px;
+  margin-right: 5px;
+  border-radius: 5px;
+}
+.overview .alarms .alarm.status-1 {
+  background-color: green;
+}
+.overview .alarms .alarm.status-2 {
+  background-color: yellow;
+}
+.overview .alarms .alarm.status-3 {
+  background-color: red;
+}
+.dashboard_block .item {
+  float: left;
+  margin-right: 20px;
 }
