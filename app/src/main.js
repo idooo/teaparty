@@ -21,6 +21,5 @@ require( [
     'src/routes'
 ], function(angular, app, routes) {
     'use strict';
-
     angular.bootstrap(document, [app['name']]);
 });

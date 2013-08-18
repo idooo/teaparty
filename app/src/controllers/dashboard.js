@@ -1,5 +1,5 @@
 define([], function() {
-    return ['$scope', '$http', function($scope, $http) {
+    return ['$scope', '$http', 'socket', function($scope, $http, socket) {
 
         $scope.blocks = []
 
@@ -15,6 +15,16 @@ define([], function() {
             data.type = 'ELB';
             $scope.blocks.push(data);
         });
+
+        socket.on('message', function (data) {
+            console.log(data);
+        });
+
+        $scope.sendMessage = function() {
+            socket.emit('say', {
+                msg: 'pssst'
+            })
+        }
 
         $scope.$apply();
     }];
