@@ -10,27 +10,17 @@ class CloudWatchHelper():
     # alarm states
     __ALARM_STATES = set(['OK', 'ALARM', 'INSUFFICIENT_DATA'])
 
-    REGION = 'ap-southeast-2'
-
-    ZONE = 'ap-southeast-2a'
-    RESERVED_ZONE = 'ap-southeast-2b'
-
     conn = False
 
-    def __init__(self, region=False):
-        if region:
-            self.REGION = region
-
+    def __init__(self, region):
         self.connect(region)
 
-    def connect(self, region = False):
+    def connect(self, region):
         """
             Create connection to region
             If region didn't specified - connect to default region
             @param region
         """
-        if not region:
-            region = self.REGION
 
         self.conn = boto.ec2.cloudwatch.connect_to_region(region)
 
@@ -53,50 +43,13 @@ class CloudWatchHelper():
 
         return (instances_ids, start_time, end_time, stats_names)
 
-    def getInstancesMetric(self, instances_ids, metric_name, stats_names, period=60, start_time=None, end_time=None):
-        metrics = {}
+    def getMetricData(self, metric, statistics='Average'):
+        end_time = datetime.datetime.utcnow()
+        start_time = end_time - datetime.timedelta(minutes=60)
+        return metric.query(start_time, end_time, statistics, unit='Percent', period=60)
 
-        (instances_ids, start_time, end_time, stats_names) = self.__prepareParams(instances_ids, start_time, end_time, stats_names)
-
-        for instance_id in instances_ids:
-
-            if isinstance(instance_id, ProtoInstance):
-                instance_id = instance_id['id']
-
-            result = self.conn.get_metric_statistics(
-                period,
-                start_time,
-                end_time,
-                metric_name,
-                self._ns_EC2,
-                stats_names,
-                dimensions={'InstanceId': [instance_id]}
-            )
-
-            if result:
-                result = result[0]
-            else:
-                result = {}
-
-            metrics.update({
-                instance_id : result
-            })
-
-        if metrics:
-            if len(instances_ids) == 1:
-                return metrics[instances_ids[0]]
-
-        return metrics
-
-    def getInstanceMetric(self, instance_id, metric_name, stats_names, period=60, start_time=None, end_time=None):
-        """
-            Get metric data for instance
-            @param instance_id {str|dict}
-        """
-        return self.getInstancesMetric(instance_id, metric_name, stats_names, period=period, start_time=start_time, end_time=end_time)
-
-    def getMetrics(self, filter, namespace=None):
-        return self.conn.list_metrics(metric_name=filter, namespace=namespace)
+    def getMetrics(self, filter, namespace=None, dimensions=None):
+        return self.conn.list_metrics(metric_name=filter, namespace=namespace, dimensions=dimensions)
     
     def getAlarms(self):
         _raw = self.conn.describe_alarms()

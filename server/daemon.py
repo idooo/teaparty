@@ -1,10 +1,53 @@
 #!/usr/bin/python
 
-from src import CloudWatchHelper, DBAdapter
+from src import CloudWatchHelper, ELBHelper, DBAdapter
 
-cw = CloudWatchHelper()
-metrics = cw.getMetrics('UsedSpacePercent', 'System/Linux')
+config = [
+    {
+        'type': 'elb',
+        'name': 'prod-web',
+        'metrics': ['Latency', 'RequestCount'],
+        'child_metrics': ['CPUUtilization', 'UsedMemoryPercent', 'UsedSpacePercent|Path:/data']
+    }
+]
 
-print metrics
+class MetricDaemon():
 
-db = DBAdapter('db/test.db')
+    cw = None
+    elb = None
+
+    def __init__(self, config):
+        self.cw = CloudWatchHelper('ap-southeast-2')
+        self.elb = ELBHelper('ap-southeast-2')
+
+        self.db = DBAdapter('db/test.db')
+
+        self.__parseConfig(config)
+
+    def __parseConfig(self, config):
+
+        elbs = self.elb.getLoadBalancers()
+
+        # TODO: Error handling
+        for obj in config:
+
+            # Load balancer logic
+            if obj['type'] == 'elb':
+
+                if not obj['name'] in elbs:
+                    raise Exception('There is not ELB with name ' + obj['name'])
+
+                obj['instances'] = elbs[obj['name']].instances[:]
+
+                self.db.addELB(obj['name'], obj['metrics'])
+
+
+if __name__ == '__main__':
+
+    coyote = MetricDaemon(config)
+
+
+
+# metrics = cw.getMetrics('CPUUtilization', dimensions={'InstanceId': 'i-11d5d62c'})
+
+# a = cw.getMetricData(metrics[0])
