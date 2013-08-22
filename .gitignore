@@ -15,4 +15,6 @@ results
 .idea
 .DS_store
 
+server/db
+
 npm-debug.log
