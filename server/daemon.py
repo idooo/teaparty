@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-from src import CloudWatchHelper, ELBHelper, DBAdapter
+from src import CloudWatchHelper, ELBHelper, DBAdapter, Executor
+from time import sleep
 
 config = [
     {
@@ -90,8 +91,18 @@ class MetricDaemon():
             for metric_uid in instances[instance_uid]['metrics']:
                 self.__addToQueue('instance', instances[instance_uid]['id'], metrics[str(metric_uid)])
 
+    def start(self):
+        e = Executor([1,2,3,4,5,6,7])
+
+        e.execute(4)
+        sleep(5)
+
+        e.stop()
+
+
 if __name__ == '__main__':
-    coyote = MetricDaemon(config)
+    coyote = MetricDaemon()
+    coyote.start()
 
 
 
