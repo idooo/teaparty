@@ -86,6 +86,19 @@ class DBAdapter():
 
         return result
 
+    def __getDimensions(self, dim_string):
+        result = {}
+
+        if dim_string:
+            items = dim_string.split(',')
+
+            for item in items:
+                tmp = item.split(':')
+                # TODO: Format tmp[1] (int), {str)
+                result.update({tmp[0]: tmp[1]})
+
+        return result
+
     def addMetric(self, metric_name):
         c = self.connection.cursor()
         try:
@@ -102,13 +115,22 @@ class DBAdapter():
 
         return metric_id
 
+    def addMetrics(self, metrics):
+        metric_ids = []
+        for metric in metrics:
+            _id = self.addMetric(metric)
+            if _id:
+                metric_ids.append(_id)
+
+        return metric_ids
+
     def addELB(self, elb_name, metrics):
         c = self.connection.cursor()
 
         result = self.__isExist('elbs', 'name="'+elb_name+'"')
 
         if not result:
-            metric_ids = self.__listToStr(metrics)
+            metric_ids = self.__listToStr(self.addMetrics(metrics))
             elb_uid = self.__uid('elbs')
 
             query = 'INSERT INTO elbs VALUES ({0}, "{1}", "{2}")'.format(elb_uid, elb_name, metric_ids)
@@ -126,7 +148,7 @@ class DBAdapter():
         result = self.__isExist('instances', 'id="'+instance_id+'"')
 
         if not result:
-            metric_ids = self.__listToStr(metrics)
+            metric_ids = self.__listToStr(self.addMetrics(metrics))
             instance_uid = self.__uid('instances')
 
             query = 'INSERT INTO instances VALUES ({0}, "{1}", "{2}")'.format(instance_uid, instance_id, metric_ids)
@@ -169,3 +191,46 @@ class DBAdapter():
 
         else:
             raise Exception("Empty group")
+
+    def getMetrics(self):
+        _hash = {}
+        c = self.connection.cursor()
+        for row in c.execute('SELECT * FROM metrics'):
+            dimensions = self.__getDimensions(row[2])
+            _hash.update({
+                str(row[0]) : {
+                    'uid': row[0],
+                    'name': row[1],
+                    'dimensions': dimensions
+                }
+            })
+
+        return _hash
+
+    def getInstances(self):
+        _hash = {}
+        c = self.connection.cursor()
+        for row in c.execute('SELECT * FROM instances'):
+            _hash.update({
+                str(row[0]) : {
+                    'uid': row[0],
+                    'id': row[1],
+                    'metrics': map(int, row[2].split('|'))
+                }
+            })
+
+        return _hash
+
+    def getELBs(self):
+        _hash = {}
+        c = self.connection.cursor()
+        for row in c.execute('SELECT * FROM elbs'):
+            _hash.update({
+                str(row[0]) : {
+                    'uid': row[0],
+                    'name': row[1],
+                    'metrics': map(int, row[2].split('|'))
+                }
+            })
+
+        return _hash

@@ -28,21 +28,6 @@ class CloudWatchHelper():
             print 'Invalid region name'
             return False
 
-    def __prepareParams(self, instances_ids, start_time, end_time, stats_names):
-        if not start_time or not isinstance(start_time, datetime):
-            start_time = datetime.datetime.utcnow() - datetime.timedelta(seconds=600)
-
-        if not end_time or not isinstance(end_time, datetime):
-            end_time =  datetime.datetime.utcnow()
-
-        if not isinstance(stats_names, list):
-            stats_names = [stats_names]
-
-        if not isinstance(instances_ids, list):
-            instances_ids = [instances_ids]
-
-        return (instances_ids, start_time, end_time, stats_names)
-
     def getMetricData(self, metric, statistics='Average'):
         end_time = datetime.datetime.utcnow()
         start_time = end_time - datetime.timedelta(minutes=60)
