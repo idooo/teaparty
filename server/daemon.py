@@ -39,11 +39,15 @@ class MetricDaemon():
 
                 obj['instances'] = elbs[obj['name']].instances[:]
 
-                self.db.addELB(obj['name'], obj['metrics'])
+                elb_uid = self.db.addELB(obj['name'], obj['metrics'])
+                instances_uids = []
 
+                for instance in obj['instances']:
+                    instances_uids.append(self.db.addInstance(instance.id, obj['child_metrics']))
+
+                self.db.addGroup(elb_uid, instances_uids)
 
 if __name__ == '__main__':
-
     coyote = MetricDaemon(config)
 
 

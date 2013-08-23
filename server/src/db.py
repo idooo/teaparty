@@ -8,7 +8,7 @@ class DBAdapter():
     format = [
         {
             'name': 'groups',
-            'fields': ['uid integer', 'elb bool', 'elb_uid integer', 'instances text']
+            'fields': ['uid integer', 'elb integer', 'instances text']
         },
         {
             'name': 'elbs',
@@ -16,7 +16,7 @@ class DBAdapter():
         },
         {
             'name': 'instances',
-            'fields': ['uid integer', 'name text', 'metrics text']
+            'fields': ['uid integer', 'id text', 'metrics text']
         },
         {
             'name': 'metrics',
@@ -78,6 +78,14 @@ class DBAdapter():
 
         return False
 
+    def __listToStr(self, items):
+        if items:
+            result = '|'.join(map(str, items))
+        else:
+            result = ''
+
+        return result
+
     def addMetric(self, metric_name):
         c = self.connection.cursor()
         try:
@@ -91,6 +99,7 @@ class DBAdapter():
             .format(metric_id, metric_name, dimensions)
 
         c.execute(query)
+
         return metric_id
 
     def addELB(self, elb_name, metrics):
@@ -99,18 +108,64 @@ class DBAdapter():
         result = self.__isExist('elbs', 'name="'+elb_name+'"')
 
         if not result:
-            metric_ids = []
-            for metric in metrics:
-                _id = self.addMetric(metric)
-                if _id:
-                    metric_ids.append(str(_id))
+            metric_ids = self.__listToStr(metrics)
+            elb_uid = self.__uid('elbs')
 
-            if metric_ids:
-                metric_ids = '|'.join(metric_ids)
-            else:
-                metric_ids = ''
-
-            query = 'INSERT INTO elbs VALUES ({0}, "{1}", "{2}")'.format(self.__uid('elbs'), elb_name, metric_ids)
+            query = 'INSERT INTO elbs VALUES ({0}, "{1}", "{2}")'.format(elb_uid, elb_name, metric_ids)
             c.execute(query)
 
             self.connection.commit()
+
+            return elb_uid
+
+        return result
+
+    def addInstance(self, instance_id, metrics):
+        c = self.connection.cursor()
+
+        result = self.__isExist('instances', 'id="'+instance_id+'"')
+
+        if not result:
+            metric_ids = self.__listToStr(metrics)
+            instance_uid = self.__uid('instances')
+
+            query = 'INSERT INTO instances VALUES ({0}, "{1}", "{2}")'.format(instance_uid, instance_id, metric_ids)
+            c.execute(query)
+
+            self.connection.commit()
+
+            return instance_uid
+
+        return result
+
+    def addGroup(self, elb, instances):
+
+        instances_ids = self.__listToStr(instances)
+
+        c = self.connection.cursor()
+
+        # If group has ELB
+        if elb:
+            result = self.__isExist('groups', 'elb='+str(elb)+'')
+            if not result:
+                group_uid = self.__uid('groups')
+
+                query = 'INSERT INTO groups VALUES ({0}, {1}, "{2}")'.format(group_uid, elb, instances_ids)
+                c.execute(query)
+
+                self.connection.commit()
+
+                return group_uid
+
+            else:
+                pass
+                # TODO: Update existing
+
+        elif instances_ids:
+            result = self.__isExist('groups', 'instances="'+instances_ids+'"')
+
+            # TODO: add logic
+
+
+        else:
+            raise Exception("Empty group")
