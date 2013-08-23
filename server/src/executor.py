@@ -1,5 +1,6 @@
 import threading
 from time import sleep
+from datetime import datetime
 
 
 class ExecutorThread(threading.Thread):
@@ -22,7 +23,8 @@ class ExecutorThread(threading.Thread):
             elif self.parent.state == 1:
                 item = self.parent.local_queue.get()
                 if item:
-                    print self.name + ' is working... ' + str(item)
+                    datapoints = self.parent.proc(item['name'], item['namespace'], item['dimensions'])
+                    self.parent.result_pool.append({str(item['uid']): datapoints})
                     sleep(self.parent.latency)
                 else:
                     print self.name + ' is waiting...'
@@ -60,12 +62,19 @@ class Executor():
     state = 0
     latency = 1
 
+    proc = None
     local_queue = None
 
-    def __init__(self, items, latency=1):
+    result_pool = []
+
+    def __init__(self, proc, items, latency=1):
         self.local_queue = myQueue()
         self.local_queue.add(items)
         self.latency = latency
+        self.proc = proc
+
+        # To prevent thread errors
+        datetime.strptime('1000', '%Y')
 
     def startThread(self, name):
         self.threads.update({name: ExecutorThread(self, name)})
@@ -91,3 +100,9 @@ class Executor():
 
         elif self.state == 0:
             self.execute(threads)
+
+    def getData(self):
+        data = self.result_pool[:]
+        self.result_pool = []
+        return data
+

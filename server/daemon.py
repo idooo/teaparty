@@ -70,10 +70,26 @@ class MetricDaemon():
         item = {
             'name': metric['name'],
             'uid': metric['uid'],
-            'dimensions': dimensions
+            'dimensions': dimensions,
+            'namespace': metric['namespace']
         }
 
         self.queue.append(item.copy())
+
+    def __getNamespaces(self, dimensions):
+        metrics = self.cw.getMetrics(dimensions=dimensions)
+        namespaces = {}
+        for metric in metrics:
+            namespaces.update({str(metric.name): metric.namespace})
+
+        return namespaces
+
+    def __addNamespace(self, metric, namespaces):
+        if metric['name'] in namespaces:
+            metric['namespace'] = namespaces[metric['name']]
+            return metric
+
+        return False
 
     def __createQueue(self):
 
@@ -84,28 +100,34 @@ class MetricDaemon():
         elbs = self.db.getELBs()
 
         for elb_uid in elbs:
+            elb_name = elbs[elb_uid]['name']
+            namespaces = self.__getNamespaces({'LoadBalancerName': elb_name})
+
             for metric_uid in elbs[elb_uid]['metrics']:
-                self.__addToQueue('elb', elbs[elb_uid]['name'], metrics[str(metric_uid)])
+                metric = self.__addNamespace(metrics[str(metric_uid)], namespaces)
+                if metric:
+                    self.__addToQueue('elb', elb_name, metric)
 
         for instance_uid in instances:
+            namespaces = self.__getNamespaces({'InstanceId': instances[instance_uid]['id']})
             for metric_uid in instances[instance_uid]['metrics']:
-                self.__addToQueue('instance', instances[instance_uid]['id'], metrics[str(metric_uid)])
+                metric = self.__addNamespace(metrics[str(metric_uid)], namespaces)
+                if metric:
+                    self.__addToQueue('instance', instances[instance_uid]['id'], metric)
 
     def start(self):
-        e = Executor([1,2,3,4,5,6,7])
+        e = Executor(self.cw.getMetricData, self.queue, latency=2)
 
         e.execute(4)
         sleep(5)
 
         e.stop()
 
+        items = e.getData()
+
+        for item in items:
+            print item
 
 if __name__ == '__main__':
     coyote = MetricDaemon()
     coyote.start()
-
-
-
-# metrics = cw.getMetrics('CPUUtilization', dimensions={'InstanceId': 'i-11d5d62c'})
-
-# a = cw.getMetricData(metrics[0])

@@ -28,12 +28,12 @@ class CloudWatchHelper():
             print 'Invalid region name'
             return False
 
-    def getMetricData(self, metric, statistics='Average'):
+    def getMetricData(self, metric_name, namespace, dimensions, statistics='Average', minutes=15, unit='Percent', period=60):
         end_time = datetime.datetime.utcnow()
-        start_time = end_time - datetime.timedelta(minutes=60)
-        return metric.query(start_time, end_time, statistics, unit='Percent', period=60)
+        start_time = end_time - datetime.timedelta(minutes=minutes)
+        return self.conn.get_metric_statistics(period, start_time, end_time, metric_name, namespace, statistics, dimensions=dimensions, unit=unit)
 
-    def getMetrics(self, filter, namespace=None, dimensions=None):
+    def getMetrics(self, filter=None, namespace=None, dimensions=None):
         return self.conn.list_metrics(metric_name=filter, namespace=namespace, dimensions=dimensions)
     
     def getAlarms(self):
