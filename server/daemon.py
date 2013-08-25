@@ -7,7 +7,7 @@ config = [
     {
         'type': 'elb',
         'name': 'prod-web',
-        'metrics': ['Latency', 'RequestCount'],
+        'metrics': ['Latency|Seconds', 'RequestCount|Count'],
         'child_metrics': ['CPUUtilization', 'UsedMemoryPercent', 'UsedSpacePercent|Path:/data', 'test|path:/data,year:2010']
     }
 ]
@@ -116,6 +116,10 @@ class MetricDaemon():
                     self.__addToQueue('instance', instances[instance_uid]['id'], metric)
 
     def start(self):
+        if not self.queue:
+            print 'Queue is empty. Please load config first'
+            return False
+
         e = Executor(self.cw.getMetricData, self.queue, latency=2)
 
         e.execute(4)
@@ -129,5 +133,9 @@ class MetricDaemon():
             print item
 
 if __name__ == '__main__':
-    coyote = MetricDaemon()
-    coyote.start()
+    coyote = MetricDaemon(config)
+
+    for item in coyote.queue:
+        print item
+
+    # coyote.start()

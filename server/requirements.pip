@@ -1,3 +1,4 @@
 Flask >= 0.10
 gevent-socketio
 boto >= 2.9
+mock
