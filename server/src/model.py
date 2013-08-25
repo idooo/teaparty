@@ -22,11 +22,11 @@ class DBAdapter():
         },
         {
             'name': 'metrics',
-            'fields': ['uid integer', 'name text', 'unit text', 'dimensions text']
+            'fields': ['uid integer', 'name text', 'dimensions text', 'unit text']
         },
         {
             'name': 'metric_values',
-            'fields': ['metric_uid integer', 'value float']
+            'fields': ['metric_uid integer', 'date text', 'value float']
         }
     ]
 
@@ -208,6 +208,19 @@ class DBAdapter():
         else:
             raise Exception("Empty group")
 
+    def addMetricValues(self, metric_uid, values, cursor=None):
+        # It's better for performance to pass cursor instead create new
+        if not cursor:
+            cursor = self.connection.cursor()
+
+        str_metric_uid = str(metric_uid)
+        formatted_values = []
+        for item in values:
+            formatted_values.append('(' + str_metric_uid + ',"' + item['timestamp'] + '","' + str(item['value'])+'")')
+
+        query = 'INSERT INTO metric_values VALUES {0}'.format(','.join(formatted_values))
+        cursor.execute(query)
+
     def getMetrics(self):
         _hash = {}
         c = self.connection.cursor()
@@ -217,7 +230,8 @@ class DBAdapter():
                 str(row[0]) : {
                     'uid': row[0],
                     'name': row[1],
-                    'dimensions': dimensions
+                    'dimensions': dimensions,
+                    'unit': row[3]
                 }
             })
 
@@ -250,3 +264,17 @@ class DBAdapter():
             })
 
         return _hash
+
+    def getLastMetricValue(self, uid, cursor=None):
+        # It's better for performance to pass cursor instead create new
+        if not cursor:
+            cursor = self.connection.cursor()
+
+        cursor.execute("SELECT MAX(date) FROM metric_values WHERE metric_uid={0}".format(uid))
+        result = cursor.fetchone()
+        if result[0]:
+            value = result[0]
+        else:
+            value = ''
+
+        return value

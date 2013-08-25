@@ -28,7 +28,7 @@ class CloudWatchHelper():
             print 'Invalid region name'
             return False
 
-    def getMetricData(self, metric_name, namespace, dimensions, statistics='Average', minutes=15, unit='Percent', period=60):
+    def getMetricData(self, metric_name, namespace, dimensions, unit, statistics='Average', minutes=15, period=60):
         end_time = datetime.datetime.utcnow()
         start_time = end_time - datetime.timedelta(minutes=minutes)
         return self.conn.get_metric_statistics(period, start_time, end_time, metric_name, namespace, statistics, dimensions=dimensions, unit=unit)

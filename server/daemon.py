@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 from src import CloudWatchHelper, ELBHelper, DBAdapter, Executor
-from time import sleep
 
+# TODO: Move to separate config
 config = [
     {
         'type': 'elb',
         'name': 'prod-web',
         'metrics': ['Latency|Seconds', 'RequestCount|Count'],
-        'child_metrics': ['CPUUtilization', 'UsedMemoryPercent', 'UsedSpacePercent|Path:/data', 'test|path:/data,year:2010']
+        'child_metrics': ['CPUUtilization', 'UsedMemoryPercent', 'UsedSpacePercent||Path:/data', 'test||path:/data,year:2010']
     }
 ]
 
@@ -18,13 +18,17 @@ class MetricDaemon():
     elb = None
     db = None
 
+    # TODO: Move to config
+    dbname = 'db/test.db'
+
     queue = []
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, dbname='db/test.db'):
         self.cw = CloudWatchHelper('ap-southeast-2')
         self.elb = ELBHelper('ap-southeast-2')
 
-        self.db = DBAdapter('db/test.db')
+        self.db = DBAdapter(dbname)
+        self.dbname = dbname
 
         if config:
             self.__parseConfig(config)
@@ -71,7 +75,8 @@ class MetricDaemon():
             'name': metric['name'],
             'uid': metric['uid'],
             'dimensions': dimensions,
-            'namespace': metric['namespace']
+            'namespace': metric['namespace'],
+            'unit': metric['unit']
         }
 
         self.queue.append(item.copy())
@@ -115,27 +120,14 @@ class MetricDaemon():
                 if metric:
                     self.__addToQueue('instance', instances[instance_uid]['id'], metric)
 
-    def start(self):
+    def start(self, debug=False):
         if not self.queue:
             print 'Queue is empty. Please load config first'
             return False
 
-        e = Executor(self.cw.getMetricData, self.queue, latency=2)
-
+        e = Executor(self.cw.getMetricData, self.queue, self.dbname, latency=2, debug=debug)
         e.execute(4)
-        sleep(5)
-
-        e.stop()
-
-        items = e.getData()
-
-        for item in items:
-            print item
 
 if __name__ == '__main__':
     coyote = MetricDaemon(config)
-
-    for item in coyote.queue:
-        print item
-
-    # coyote.start()
+    coyote.start(debug=False)

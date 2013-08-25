@@ -1,6 +1,7 @@
 import threading
 from time import sleep
 from datetime import datetime
+from src.model import DBAdapter
 
 
 class ExecutorThread(threading.Thread):
@@ -21,13 +22,18 @@ class ExecutorThread(threading.Thread):
                 sleep(5)
 
             elif self.parent.state == 1:
-                item = self.parent.local_queue.get()
-                if item:
-                    datapoints = self.parent.proc(item['name'], item['namespace'], item['dimensions'])
+                if not self.parent.local_queue.ended:
+                    item = self.parent.local_queue.get()
+
+                    # TODO: Handle AWS errors
+                    datapoints = self.parent.proc(item['name'], item['namespace'], item['dimensions'], item['unit'])
                     self.parent.result_pool.append({str(item['uid']): datapoints})
+
                     sleep(self.parent.latency)
                 else:
-                    print self.name + ' is waiting...'
+                    if self.parent.debug:
+                        print self.name + ' is waiting...'
+
                     sleep(1)
 
 
@@ -48,11 +54,15 @@ class myQueue(list):
         self.cursor += 1
         if self.cursor == len(self.body):
             self.cursor = 0
+            self.ended = True
 
     def get(self):
         result = self.body[self.cursor]
         self.next()
         return result
+
+    def renew(self):
+        self.ended = False
 
 
 class Executor():
@@ -61,19 +71,25 @@ class Executor():
 
     state = 0
     latency = 1
+    time_between = 15
+
+    debug = False
 
     proc = None
     local_queue = None
 
     result_pool = []
 
-    def __init__(self, proc, items, latency=1):
+    def __init__(self, proc, items, dbname, latency=1, debug=False):
         self.local_queue = myQueue()
         self.local_queue.add(items)
         self.latency = latency
         self.proc = proc
+        self.debug = debug
 
-        # To prevent thread errors
+        self.db = self.db = DBAdapter(dbname)
+
+        # To prevent strptime thread errors
         datetime.strptime('1000', '%Y')
 
     def startThread(self, name):
@@ -86,6 +102,22 @@ class Executor():
             self.threads_number += 1
             name = 'Thread_' + str(self.threads_number)
             self.startThread(name)
+
+        if not self.debug:
+            while True:
+                if self.local_queue.ended:
+                    self.saveDataFromPool()
+                    self.result_pool = []
+                    self.local_queue.renew()
+
+                sleep(self.time_between)
+        else:
+            while not self.local_queue.ended:
+                sleep(1)
+
+            self.stop()
+            self.saveDataFromPool()
+
 
     def stop(self):
         self.state = 0
@@ -101,8 +133,37 @@ class Executor():
         elif self.state == 0:
             self.execute(threads)
 
-    def getData(self):
-        data = self.result_pool[:]
-        self.result_pool = []
-        return data
+    def __getMetricStatName(self, datapoint):
+        for key in datapoint.keys():
+            if not key in ['Timestamp', 'Unit']:
+                return key
 
+    def saveDataFromPool(self):
+        data = self.result_pool[:]
+
+        # It's better for performance to pass cursor instead create new
+        c = self.db.connection.cursor()
+
+        for metric in data:
+            metric_uid = int(metric.keys()[0])
+            datapoints = metric[str(metric_uid)]
+
+            if not datapoints:
+                continue
+
+            stat_name = self.__getMetricStatName(datapoints[0])
+
+            last_metric_date = self.db.getLastMetricValue(metric_uid, cursor=c)
+
+            new_points = []
+            for point in datapoints:
+                timestamp = datetime.strftime(point['Timestamp'], '%Y-%m-%d %H:%M:%S')
+                if timestamp > last_metric_date:
+                    new_points.append({'timestamp':timestamp, 'value': point[stat_name]})
+
+            # TODO: May be sort points by timestamp before add to database?
+            if new_points:
+                self.db.addMetricValues(metric_uid, new_points, c)
+                self.db.connection.commit()
+
+            # TODO: Delete outdated (1d-3d records)
