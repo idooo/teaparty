@@ -1,6 +1,5 @@
 require.config({
     paths: {
-        underscore: 'lib/underscore/underscore',
         socketio: 'lib/socketio/socket.io',
         angular: 'lib/angular/angular',
         text: 'lib/require/text'
@@ -11,7 +10,7 @@ require.config({
 
     shim: {
         'angular' : {
-            'deps': ['underscore', 'socketio'],
+            'deps': ['socketio'],
             'exports' : 'angular'
         }
     },

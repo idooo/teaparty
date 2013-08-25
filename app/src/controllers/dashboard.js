@@ -7,7 +7,7 @@ define([], function() {
         socket.emit('init')
 
         socket.on('response:init', function (data) {
-            _.each(['instances', 'alarms'], function(param){
+            ['instances', 'alarms'].forEach(function(param){
                 $scope[param] = data[param];
             });
             $scope.blocks.push(data['elb'])
