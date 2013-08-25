@@ -13,6 +13,14 @@ define([], function() {
             $scope.blocks.push(data['elb'])
         });
 
+        socket.on('response:get_data', function (data) {
+            console.log(data);
+        })
+
+        $scope.getData = function() {
+            socket.emit('get_data', {'get': 'all'});
+        }
+
         $scope.$apply();
     }];
 });

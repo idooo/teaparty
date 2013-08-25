@@ -278,3 +278,18 @@ class DBAdapter():
             value = ''
 
         return value
+
+    def getMetricValues(self, metric_uid=None, cursor=None):
+        if not cursor:
+            cursor = self.connection.cursor()
+
+        metric_values = []
+        query = 'SELECT * FROM metric_values ORDER BY date'
+
+        if metric_uid:
+            query += ' WHERE metric_uid=' + str(metric_uid)
+
+        for row in cursor.execute(query):
+            metric_values.append(row)
+
+        return metric_values
