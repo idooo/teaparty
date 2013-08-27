@@ -37,8 +37,11 @@ class TeapartyNamespace(BaseNamespace):
         if not 'get' in message:
             return False
 
+        metric_uid = None
         if not message['get'] in ['all']:
-            return False
+            metric_uid = message['get']
 
-        results = self.db.getMetricValues()
+        cursor = self.db.connection.cursor()
+
+        results = self.db.getMetricValues(metric_uid=metric_uid, cursor=cursor)
         self.response('response:get_data', results)

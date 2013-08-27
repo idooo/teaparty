@@ -157,6 +157,11 @@ class Executor():
         # To prevent strptime thread errors
         datetime.strptime('1000', '%Y')
 
+    def __getMetricStatName(self, datapoint):
+        for key in datapoint.keys():
+            if not key in ['Timestamp', 'Unit']:
+                return key
+
     def startThread(self, name="Noname"):
         """ Start thread with specific name """
         self.threads.update({name: ExecutorThread(self, name)})
@@ -199,11 +204,6 @@ class Executor():
 
         elif self.state == 0:
             self.execute(threads)
-
-    def __getMetricStatName(self, datapoint):
-        for key in datapoint.keys():
-            if not key in ['Timestamp', 'Unit']:
-                return key
 
     def saveDataFromPool(self):
         data = self.result_pool[:]
