@@ -1,5 +1,10 @@
 # -*- coding: UTF-8 -*-
 
+"""
+AWS ELB wrapper based on boto for high-level operations
+with Elastic Load Balancers
+"""
+
 import boto.ec2.elb
 
 class ELBHelper():
@@ -11,14 +16,21 @@ class ELBHelper():
 
     def connect(self, region):
         """
-            Create connection to region
-            If region didn't specified - connect to default region
-            @param region
+        Create AWS ELB connection
+
+        :type region: string
+        :param region: Region to connect
         """
 
         self.conn = boto.ec2.elb.connect_to_region(region)
 
     def getLoadBalancers(self):
+        """
+        Get load balancers and format it in friendly format
+
+        :rtype: :dict
+        :returns: Dictionary ELB name => ELB data
+        """
         elbs = {}
         _raws = self.conn.get_all_load_balancers()
         for _raw in _raws:
