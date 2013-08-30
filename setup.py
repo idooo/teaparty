@@ -5,9 +5,6 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import os, sys, inspect
-sys.path.insert(0, os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() ))[0])+'/server')
-
 from teaparty import __version__
 
 if sys.version_info <= (2, 4):
@@ -19,7 +16,7 @@ setup(
     name='teaparty',
     version=__version__,
     packages=['teaparty'],
-    scripts=['server/teaparty-daemon', 'server/teaparty-server'],
+    scripts=['teaparty-daemon', 'teaparty-server'],
     url='',
     package_dir = {'':'server'},
     package_data = {'': ['db/*.db']},
@@ -29,7 +26,7 @@ setup(
     description='',
     install_requires=[
         "Flask >= 0.10",
-        "gevent-socketio",
+        #"gevent-socketio",
         "boto >= 2.11",
         "mock"
     ]
