@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-from src import CloudWatchHelper, ELBHelper, DBAdapter, Executor
+from teaparty import CloudWatchHelper, ELBHelper, DBAdapter, Executor
 
 # TODO: Unit tests
 # TODO: Move to separate config
@@ -20,11 +20,11 @@ class MetricDaemon():
     db = None
 
     # TODO: Move to config
-    dbname = 'db/test.db'
+    dbname = 'test.db'
 
     queue = []
 
-    def __init__(self, config=None, dbname='db/test.db'):
+    def __init__(self, config=None, dbname='test.db'):
         self.cw = CloudWatchHelper('ap-southeast-2')
         self.elb = ELBHelper('ap-southeast-2')
 

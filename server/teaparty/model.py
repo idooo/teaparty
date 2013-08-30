@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 class DBAdapter():
 
@@ -31,7 +32,8 @@ class DBAdapter():
     ]
 
     def __init__(self, dbname):
-        self.connection = sqlite3.connect(dbname)
+        _ROOT = os.path.abspath(os.path.dirname(__file__))
+        self.connection = sqlite3.connect(os.path.join(_ROOT, 'db', dbname))
         self.__initTables()
         self.__getCounters()
 

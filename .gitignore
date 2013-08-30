@@ -15,6 +15,6 @@ results
 .idea
 .DS_store
 
-server/db
+server/teaparty/db
 
 npm-debug.log

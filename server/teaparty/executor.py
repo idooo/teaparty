@@ -10,7 +10,7 @@ and start jobs again.
 import threading
 from time import sleep
 from datetime import datetime
-from src.model import DBAdapter
+from teaparty.model import DBAdapter
 
 
 class ExecutorThread(threading.Thread):

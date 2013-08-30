@@ -1,12 +1,12 @@
 from socketio.namespace import BaseNamespace
 from mocker import ResponseMocker
-from src import DBAdapter
+from teaparty.model import DBAdapter
 
 class TeapartyNamespace(BaseNamespace):
     sockets = {}
     server = ResponseMocker()
     # TODO: Read from config
-    db = DBAdapter('db/test.db')
+    db = DBAdapter('test.db')
 
     def recv_connect(self):
         print "Got a socket connection" # debug
