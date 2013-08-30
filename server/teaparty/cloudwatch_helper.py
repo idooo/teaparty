@@ -8,11 +8,6 @@ import datetime
 
 class CloudWatchHelper():
 
-    __ec2_metrics = {}
-
-    # alarm states
-    __ALARM_STATES = set(['OK', 'ALARM', 'INSUFFICIENT_DATA'])
-
     conn = False
 
     def __init__(self, region):
@@ -74,17 +69,22 @@ class CloudWatchHelper():
     
     def getAlarms(self):
         _raw = self.conn.describe_alarms()
-        alarms = {}
+        result = {
+            'count': 0,
+            'statuses': []
+        }
 
-        if not _raw:
-            return alarms
+        if _raw:
+            alarms = []
+            for alarm in _raw:
+                alarms.append({
+                    'name': alarm.name,
+                    'status': alarm.state_value
+                })
 
-        for alarm in _raw:
-            alarms.update({
-                alarm.name: alarm
-            })
+            result['statuses'] = alarms
 
-        return alarms
+        return result
 
     def getAlarm(self, alarm_name):
         if not isinstance(alarm_name, list):

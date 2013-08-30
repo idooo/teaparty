@@ -29,8 +29,8 @@ setup(
     description='',
     install_requires=[
         "Flask >= 0.10",
-       # "gevent-socketio",
-        "boto >= 2.9",
+        "gevent-socketio",
+        "boto >= 2.11",
         "mock"
     ]
 )

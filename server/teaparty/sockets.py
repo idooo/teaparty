@@ -1,12 +1,14 @@
 from socketio.namespace import BaseNamespace
-from mocker import ResponseMocker
-from teaparty.model import DBAdapter
+from teaparty.model import DBAdapter, CloudWatchHelper, EC2Helper
 
 class TeapartyNamespace(BaseNamespace):
     sockets = {}
-    server = ResponseMocker()
+
     # TODO: Read from config
+    region = 'ap-southeast-2'
     db = DBAdapter('test.db')
+    cw = CloudWatchHelper(region)
+    ec2 = EC2Helper(region)
 
     def recv_connect(self):
         print "Got a socket connection" # debug
@@ -26,9 +28,9 @@ class TeapartyNamespace(BaseNamespace):
 
     def on_init(self, message):
         data = {
-            'instances': self.server.getInstances(),
-            'alarms': self.server.getAlarms(),
-            'elb': self.server.getELB()
+            'instances': self.ec2.getInstances(),
+            'alarms': self.cw.getAlarms(),
+            # 'elb': self.server.getELB()
         }
 
         self.response('response:init', data)
