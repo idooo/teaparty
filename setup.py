@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+
 try:
     from setuptools import setup
 except ImportError:
@@ -18,15 +20,13 @@ setup(
     packages=['teaparty'],
     scripts=['teaparty-daemon', 'teaparty-server'],
     url='',
-    package_dir = {'':'server'},
-    package_data = {'': ['db/*.db']},
     license='MIT',
     author='Alex Shteinikov',
     author_email='alex.shteinikov@gmail.com',
     description='',
     install_requires=[
         "Flask >= 0.10",
-        #"gevent-socketio",
+        "gevent-socketio",
         "boto >= 2.11",
         "mock"
     ]
