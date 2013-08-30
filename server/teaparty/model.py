@@ -31,7 +31,7 @@ class DBAdapter():
         }
     ]
 
-    def __init__(self, dbname):
+    def __init__(self, dbname='teaparty.db'):
         _ROOT = os.path.abspath(os.path.dirname(__file__))
         self.connection = sqlite3.connect(os.path.join(_ROOT, 'db', dbname))
         self.__initTables()

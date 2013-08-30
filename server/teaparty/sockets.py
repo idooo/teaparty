@@ -6,7 +6,8 @@ class TeapartyNamespace(BaseNamespace):
 
     # TODO: Read from config
     region = 'ap-southeast-2'
-    db = DBAdapter('test.db')
+
+    db = DBAdapter()
     cw = CloudWatchHelper(region)
     ec2 = EC2Helper(region)
 

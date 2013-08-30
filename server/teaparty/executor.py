@@ -129,16 +129,13 @@ class Executor():
 
     result_pool = []
 
-    def __init__(self, proc, items, dbname, latency=1, debug=False):
+    def __init__(self, proc, items, latency=1, debug=False):
         """
         :type proc: method
         :param proc: method to execute
 
         :type items: list
         :param items: tasks to process
-
-        :type dbname: string
-        :param dbname: path to sqlite database to store data
 
         :type latency: integer
         :param latency: Times in seconds between requests withing one thread
@@ -152,7 +149,7 @@ class Executor():
         self.proc = proc
         self.debug = debug
 
-        self.db = self.db = DBAdapter(dbname)
+        self.db = self.db = DBAdapter()
 
         # To prevent strptime thread errors
         datetime.strptime('1000', '%Y')

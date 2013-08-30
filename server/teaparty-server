@@ -12,29 +12,33 @@ SOCKET_URL = '/socket'
 PORT = 5000
 
 app = Flask(
-	__name__,
-	static_folder='../app',
-	static_url_path='',
-	template_folder='../app'
+    __name__,
+    static_folder='../app',
+    static_url_path='',
+    template_folder='../app'
 )
 monkey.patch_all()
 
+
 @app.route("/")
 def main():
-	return render_template('index.html')
+    return render_template('index.html')
+
 
 @app.route('/socket.io/<path:rest>')
 def push_stream(rest):
-	try:
-		socketio_manage(request.environ, {SOCKET_URL: TeapartyNamespace}, request)
-	except:
-		app.logger.error("Exception while handling socketio connection", exc_info=True)
-	return Response()
+    try:
+        socketio_manage(request.environ, {SOCKET_URL: TeapartyNamespace}, request)
+    except:
+        app.logger.error("Exception while handling socketio connection", exc_info=True)
+    return Response()
+
 
 @werkzeug.serving.run_with_reloader
 def run_dev_server():
-	app.debug = True
-	SocketIOServer(('', PORT), app, resource="socket.io").serve_forever()
+    app.debug = True
+    SocketIOServer(('', PORT), app, resource="socket.io").serve_forever()
+
 
 if __name__ == "__main__":
-	run_dev_server()
+    run_dev_server()
