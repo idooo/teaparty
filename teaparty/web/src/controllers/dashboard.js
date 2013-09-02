@@ -10,7 +10,7 @@ define([], function() {
             ['instances', 'alarms'].forEach(function(param){
                 $scope[param] = data[param];
             });
-            $scope.blocks.push(data['elb'])
+            $scope.blocks = data['structure']
         });
 
         socket.on('response:get_data', function (data) {

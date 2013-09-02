@@ -107,6 +107,26 @@ class DBAdapter():
 
         return result
 
+    def __retriveFormattedMetrics(self, metrics_ids, all_metrics):
+        metrics = []
+
+        for metric_id in metrics_ids:
+            str_metric_id = str(metric_id)
+
+            if str_metric_id in all_metrics:
+                metrics.append({
+                    'name': all_metrics[str_metric_id]['name'],
+                    'caption': all_metrics[str_metric_id]['unit'],
+                    'units': '__',
+                    'uid': metric_id
+                })
+
+            # TODO: what we will do?
+            else:
+                pass
+
+        return metrics
+
     def addMetric(self, metric_name):
         c = self.connection.cursor()
 
@@ -271,6 +291,18 @@ class DBAdapter():
 
         return _hash
 
+    def getGroups(self):
+        _results = []
+        c = self.connection.cursor()
+        for row in c.execute('SELECT * FROM groups'):
+            _results.append({
+                    'uid': row[0],
+                    'elb': row[1],
+                    'instances': map(int, row[2].split('|'))
+            })
+
+        return _results
+
     def getLastMetricValue(self, uid, cursor=None):
         # It's better for performance to pass cursor instead create new
         if not cursor:
@@ -306,5 +338,55 @@ class DBAdapter():
 
         query = 'DELETE FROM metric_values WHERE date<{0}'.format(last_time)
         cursor.execute(query)
+
+    def reflectStructure(self):
+
+        groups = self.getGroups()
+        elbs = self.getELBs()
+        all_instances = self.getInstances()
+        all_metrics = self.getMetrics()
+
+        result = []
+
+        for group in groups:
+            block = {
+                'name': '',
+                'type': 'block',
+                'instances': []
+            }
+
+            if group['elb']:
+                elb = elbs[str(group['elb'])]
+                block.update({
+                    'name': elb['name'],
+                    'metrics': self.__retriveFormattedMetrics(elb['metrics'], all_metrics)
+                })
+
+            instances = []
+            for instance_id in group['instances']:
+                str_instance_id = str(instance_id)
+
+                if str_instance_id in all_instances:
+                    instance = all_instances[str_instance_id]
+
+                    instances.append({
+                        'id': instance['id'],
+                        'metrics': self.__retriveFormattedMetrics(instance['metrics'], all_metrics)
+                    })
+
+            block.update({
+                'instances': instances
+            })
+
+            result.append(block)
+
+        return result
+
+
+
+
+
+
+
 
 

@@ -31,7 +31,7 @@ class TeapartyNamespace(BaseNamespace):
         data = {
             'instances': self.ec2.getInstances(),
             'alarms': self.cw.getAlarms(),
-            # 'elb': self.server.getELB()
+            'structure': self.db.reflectStructure()
         }
 
         self.response('response:init', data)

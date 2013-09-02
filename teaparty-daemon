@@ -141,4 +141,11 @@ if __name__ == '__main__':
         sys.exit(1)
 
     coyote = MetricDaemon(region, options.config)
-    coyote.start(debug=False)
+    #coyote.start(debug=False)
+
+    struc = coyote.
+
+    for item in struc:
+        print '!'
+        for key in item:
+            print key,'>>', item[key]
