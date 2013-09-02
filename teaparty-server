@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 import os
+import sys
+from optparse import OptionParser
+from boto.ec2 import regions
 from teaparty.sockets import TeapartyNamespace
 from flask import Flask, render_template, Response, request, jsonify
 
@@ -10,8 +13,8 @@ from socketio import socketio_manage
 from socketio.server import SocketIOServer
 
 SOCKET_URL = '/socket'
-PORT = 5000
 ROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'teaparty/web')
+REGION = ''
 
 app = Flask(
     __name__,
@@ -37,10 +40,24 @@ def push_stream(rest):
 
 
 @werkzeug.serving.run_with_reloader
-def run_dev_server():
-    app.debug = True
-    SocketIOServer(('', PORT), app, resource="socket.io").serve_forever()
-
+def run_dev_server(port=80, debug=False):
+    app.debug = debug
+    SocketIOServer(('', port), app, resource="socket.io").serve_forever()
 
 if __name__ == "__main__":
-    run_dev_server()
+    parser = OptionParser()
+    parser.add_option("-r", "--region", help="Region (default ap-southeast-2)", dest="region", default="ap-southeast-2")
+    parser.add_option("-p", "--port", help="Port to listening (default ap-southeast-2)", dest="port", default=80)
+    parser.add_option('-d', "--debug", help='Debug web server', action='store_true')
+    (options, args) = parser.parse_args()
+
+    # Check region
+    for r in regions():
+        if r.name == options.region:
+            REGION = r
+            break
+    else:
+        print "Region %s not found." % options.region
+        sys.exit(1)
+
+    run_dev_server(int(options.port), options.debug)

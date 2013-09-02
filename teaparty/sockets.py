@@ -1,6 +1,11 @@
 from socketio.namespace import BaseNamespace
 from teaparty.model import DBAdapter, CloudWatchHelper, EC2Helper
 
+try:
+    from __main__ import REGION
+except ImportError:
+    REGION = None
+
 class TeapartyNamespace(BaseNamespace):
     sockets = {}
 
