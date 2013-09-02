@@ -317,12 +317,17 @@ class DBAdapter():
 
         return value
 
-    def getMetricValues(self, metric_uid=None, cursor=None):
+    def getMetricValues(self, metric_uid=None, date=None, cursor=None):
         if not cursor:
             cursor = self.connection.cursor()
 
         metric_values = []
-        query = 'SELECT * FROM metric_values ORDER BY date'
+
+        date_filter = ''
+        if date:
+            date_filter = 'WHERE date>="' + date + '"'
+
+        query = 'SELECT * FROM metric_values {0} ORDER BY date'.format(date_filter)
 
         if metric_uid:
             query += ' WHERE metric_uid=' + str(metric_uid)

@@ -46,5 +46,9 @@ class TeapartyNamespace(BaseNamespace):
 
         cursor = self.db.connection.cursor()
 
-        results = self.db.getMetricValues(metric_uid=metric_uid, cursor=cursor)
+        date = None
+        if 'time' in message:
+            date = message['time']
+
+        results = self.db.getMetricValues(metric_uid=metric_uid, date=date, cursor=cursor)
         self.response('response:get_data', results)
