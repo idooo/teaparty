@@ -1,7 +1,11 @@
 __author__ = 'ido'
 
+from sys import path
+path.append('../')
+
 import unittest
-from src import model
+
+from teaparty import model
 from mock import Mock
 
 class ModelTestCase(unittest.TestCase):
@@ -14,6 +18,15 @@ class ModelTestCase(unittest.TestCase):
         c = self.model.connection.cursor()
         c.execute('SELECT * FROM {0} WHERE uid={1}'.format(table_name, uid))
         return c.fetchone()
+
+    def test__initTables(self):
+        c = self.model.connection.cursor()
+
+        for table in self.model.format:
+            c.execute("SELECT * FROM " + table['name'])
+
+        self.assertEqual(True, True)
+
 
     def test_addMetric(self):
 
