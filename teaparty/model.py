@@ -295,3 +295,12 @@ class DBAdapter():
             metric_values.append(row)
 
         return metric_values
+
+    def deleteOldMetricValues(self, last_time, cursor=None):
+        if not cursor:
+            cursor = self.connection.cursor()
+
+        query = 'DELETE FROM metric_values WHERE date<{0}'.format(last_time)
+        cursor.execute(query)
+
+

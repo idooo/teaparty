@@ -9,7 +9,7 @@ and start jobs again.
 
 import threading
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 from teaparty.model import DBAdapter
 
 
@@ -187,7 +187,6 @@ class Executor():
             self.stop()
             self.saveDataFromPool()
 
-
     def stop(self):
         self.state = 0
 
@@ -228,6 +227,13 @@ class Executor():
             # TODO: May be sort points by timestamp before add to database?
             if new_points:
                 self.db.addMetricValues(metric_uid, new_points, c)
-                self.db.connection.commit()
 
-            # TODO: Delete outdated (1d-3d records)
+        # remove outdated data
+        self.clearOutdatedData(days=7)
+
+        self.db.connection.commit()
+
+    def clearOutdatedData(self, days=7):
+        last_date = datetime.utcnow() - timedelta(days=days)
+        timestamp = datetime.strftime(last_date, '%Y-%m-%d')
+        self.db.deleteOldMetricValues(timestamp)
