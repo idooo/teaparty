@@ -9,8 +9,7 @@ except ImportError:
 class TeapartyNamespace(BaseNamespace):
     sockets = {}
 
-    # TODO: Read from config
-    region = 'ap-southeast-2'
+    region = REGION
 
     db = DBAdapter()
     cw = CloudWatchHelper(region)

@@ -6,7 +6,10 @@ from optparse import OptionParser
 from boto.ec2 import regions
 from teaparty import CloudWatchHelper, ELBHelper, DBAdapter, Executor
 
+# TODO: Move to library
+
 # TODO: Unit tests
+
 class MetricDaemon():
 
     cw = None
@@ -122,12 +125,14 @@ class MetricDaemon():
             print 'Queue is empty. Please load config first'
             return False
 
+        # TODO: pass parameters from command line
         e = Executor(self.cw.getMetricData, self.queue, latency=2, debug=debug)
         e.execute(4)
 
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-r", "--region", help="Region (default ap-southeast-2)", dest="region", default="ap-southeast-2")
+    parser.add_option('-d', "--debug", help='Debug web server', action='store_true')
     parser.add_option("-c", "--config", help="Configuration file (/etc/teaparty.conf by default)", dest="config", default="/etc/teaparty.conf")
     (options, args) = parser.parse_args()
 
@@ -141,11 +146,4 @@ if __name__ == '__main__':
         sys.exit(1)
 
     coyote = MetricDaemon(region, options.config)
-    #coyote.start(debug=False)
-
-    struc = coyote.
-
-    for item in struc:
-        print '!'
-        for key in item:
-            print key,'>>', item[key]
+    coyote.start(debug=options.debug)
