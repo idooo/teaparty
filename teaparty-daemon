@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import imp
 from optparse import OptionParser
 from boto.ec2 import regions
 from teaparty import CloudWatchHelper, ELBHelper, DBAdapter, Executor
@@ -13,8 +12,7 @@ from teaparty import CloudWatchHelper, ELBHelper, DBAdapter, Executor
 class MetricDaemon():
 
     cw = None
-    elb = None
-    db = None
+    model = None
 
     queue = []
 
@@ -22,41 +20,10 @@ class MetricDaemon():
         self.cw = CloudWatchHelper(region.name)
         self.elb = ELBHelper(region.name)
 
-        self.db = DBAdapter()
+        self.model = DBAdapter()
+        self.model.importDataFromFile(config_filename, self.elb.getLoadBalancers())
 
-        try:
-            config_module = imp.load_source('config', config_filename)
-        except IOError:
-            print "Config file %s not found." % config_filename
-            sys.exit(1)
-
-        if config_module.config:
-            self.__parseConfig(config_module.config)
-
-        self.__createQueue()
-
-    def __parseConfig(self, config):
-
-        elbs = self.elb.getLoadBalancers()
-
-        # TODO: Error handling
-        for obj in config:
-
-            # Load balancer logic
-            if obj['type'] == 'elb':
-
-                if not obj['name'] in elbs:
-                    raise Exception('There is not ELB with name ' + obj['name'])
-
-                obj['instances'] = elbs[obj['name']].instances[:]
-
-                elb_uid = self.db.addELB(obj['name'], obj['metrics'])
-                instances_uids = []
-
-                for instance in obj['instances']:
-                    instances_uids.append(self.db.addInstance(instance.id, obj['child_metrics']))
-
-                self.db.addGroup(elb_uid, instances_uids)
+        self.createQueue()
 
     def __addToQueue(self, obj_type, obj_code, metric):
 
@@ -96,13 +63,13 @@ class MetricDaemon():
 
         return False
 
-    def __createQueue(self):
+    def createQueue(self):
 
         self.queue = []
 
-        metrics = self.db.getMetrics()
-        instances = self.db.getInstances()
-        elbs = self.db.getELBs()
+        metrics = self.model.getMetrics()
+        instances = self.model.getInstances()
+        elbs = self.model.getELBs()
 
         for elb_uid in elbs:
             elb_name = elbs[elb_uid]['name']
@@ -146,4 +113,4 @@ if __name__ == '__main__':
         sys.exit(1)
 
     coyote = MetricDaemon(region, options.config)
-    coyote.start(debug=options.debug)
+    # coyote.start(debug=options.debug)

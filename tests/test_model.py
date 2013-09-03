@@ -6,8 +6,12 @@ path.append('../')
 import unittest
 from sqlite3 import OperationalError
 
-from teaparty import model
+from teaparty import model, ELBHelper
 from mock import Mock
+
+class dumbELBs():
+    def __init__(self, data):
+        self.instances = data[:]
 
 class ModelTestCase(unittest.TestCase):
 
@@ -17,7 +21,7 @@ class ModelTestCase(unittest.TestCase):
 
         data = {
             'groups': [
-                [1, 1, '1|2']
+                [1, '', 1, '1|2']
             ],
             'elbs': [
                 [1, 'test', '1|2']
@@ -121,6 +125,13 @@ class ModelTestCase(unittest.TestCase):
         self.assertEqual(data[0]['name'], 'pewpewpew')
         self.assertEqual(data[1]['caption'], 'Hours')
 
+
+    def test_importDataFromFile(self):
+        elbs = { 'test': dumbELBs(['i-0001', 'i-0003'])}
+
+        self.model.addELB = Mock(return_value=118)
+        self.model.addInstance = Mock(return_value=112)
+        self.model.addGroup = Mock(return_value=113)
 
     def test_addMetric(self):
 

@@ -1,5 +1,8 @@
+
+import imp
 import sqlite3
 import os
+import sys
 import re
 
 class DBAdapter():
@@ -14,7 +17,7 @@ class DBAdapter():
     format = [
         {
             'name': 'groups',
-            'fields': ['uid integer', 'elb integer', 'instances text']
+            'fields': ['uid integer', 'name text', 'elb integer', 'instances text']
         },
         {
             'name': 'elbs',
@@ -217,7 +220,7 @@ class DBAdapter():
             if not result:
                 group_uid = self.__uid('groups')
 
-                query = 'INSERT INTO groups VALUES ({0}, {1}, "{2}")'.format(group_uid, elb, instances_ids)
+                query = 'INSERT INTO groups VALUES ({0}, "", {1}, "{2}")'.format(group_uid, elb, instances_ids)
                 c.execute(query)
 
                 self.connection.commit()
@@ -307,8 +310,9 @@ class DBAdapter():
         for row in c.execute('SELECT * FROM groups'):
             _results.append({
                     'uid': row[0],
-                    'elb': row[1],
-                    'instances': map(int, row[2].split('|'))
+                    'name': row[1],
+                    'elb': row[2],
+                    'instances': map(int, row[3].split('|'))
             })
 
         return _results
@@ -397,6 +401,34 @@ class DBAdapter():
 
         return result
 
+    def importDataFromFile(self, config, elbs={}):
+
+        if not isinstance(config, dict):
+            try:
+                config_module = imp.load_source('config', config)
+                config = config_module.config
+            except Exception:
+                print "Config file %s not found." % config
+                sys.exit(1)
+
+        # TODO: Error handling
+        for obj in config:
+
+            # Load balancer logic
+            if obj['type'] == 'elb':
+
+                if not obj['name'] in elbs:
+                    raise Exception('There is not ELB with name ' + obj['name'])
+
+                obj['instances'] = elbs[obj['name']].instances[:]
+
+                elb_uid = self.addELB(obj['name'], obj['metrics'])
+                instances_uids = []
+
+                for instance in obj['instances']:
+                    instances_uids.append(self.addInstance(instance.id, obj['child_metrics']))
+
+                self.addGroup(elb_uid, instances_uids)
 
 
 
