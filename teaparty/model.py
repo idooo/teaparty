@@ -1,10 +1,13 @@
 import sqlite3
 import os
+import re
 
 class DBAdapter():
 
     connection = None
     counters = {}
+
+    RE_INT = re.compile(r'\(int\)(.*)', re.I+re.U)
 
     DEFAULT_UNIT = 'Percent'
 
@@ -39,7 +42,7 @@ class DBAdapter():
             self.connection = sqlite3.connect(os.path.join(_ROOT, 'db', dbname))
 
         self.__initTables()
-        self.__getCounters()
+        self.getCounters()
 
     def __initTables(self):
         c = self.connection.cursor()
@@ -50,23 +53,6 @@ class DBAdapter():
             c.execute(query)
 
         self.connection.commit()
-
-    def __getCounters(self):
-        c = self.connection.cursor()
-
-        self.counters = {}
-        for table in self.format:
-            try:
-                c.execute("SELECT MAX(uid) FROM " + table['name'])
-                result = c.fetchone()
-                if result[0]:
-                    value = int(result[0])
-                else:
-                    value = 0
-            except sqlite3.OperationalError:
-                value = 0
-
-            self.counters[table['name']] = value
 
     def __uid(self, counter_name):
         if not counter_name in self.counters:
@@ -102,7 +88,14 @@ class DBAdapter():
 
             for item in items:
                 tmp = item.split(':')
-                # TODO: Format tmp[1] (int), {str)
+                if len(tmp) <= 1:
+                    tmp.append('')
+
+                else:
+                    pos = re.search(self.RE_INT, tmp[1])
+                    if pos:
+                        tmp[1] = int(pos.group(1))
+
                 result.update({tmp[0]: tmp[1]})
 
         return result
@@ -126,6 +119,23 @@ class DBAdapter():
                 pass
 
         return metrics
+
+    def getCounters(self):
+        c = self.connection.cursor()
+
+        self.counters = {}
+        for table in self.format:
+            try:
+                c.execute("SELECT MAX(uid) FROM " + table['name'])
+                result = c.fetchone()
+                if result[0]:
+                    value = int(result[0])
+                else:
+                    value = 0
+            except sqlite3.OperationalError:
+                value = 0
+
+            self.counters[table['name']] = value
 
     def addMetric(self, metric_name):
         c = self.connection.cursor()
