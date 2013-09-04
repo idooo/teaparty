@@ -49,7 +49,7 @@ class ExecutorThread(threading.Thread):
                         datapoints = self.parent.proc(item['name'], item['namespace'], item['dimensions'], item['unit'])
                         self.parent.result_pool.append({str(item['uid']): datapoints})
                     except Exception:
-                        # TODO: Print data somewhere
+                        # TODO: log error somewhere
                         pass
 
                     sleep(self.parent.latency)
@@ -119,8 +119,8 @@ class Executor():
     threads_number = 0
 
     state = 0
-    latency = 1
-    time_between = 15
+    latency = None
+    waiting = None
 
     debug = False
 
@@ -129,7 +129,7 @@ class Executor():
 
     result_pool = []
 
-    def __init__(self, proc, items, latency=1, debug=False):
+    def __init__(self, proc, items, latency=2, waiting=15, debug=False):
         """
         :type proc: method
         :param proc: method to execute
@@ -148,6 +148,7 @@ class Executor():
         self.latency = latency
         self.proc = proc
         self.debug = debug
+        self.waiting = waiting
 
         self.db = self.db = DBAdapter()
 
@@ -166,6 +167,10 @@ class Executor():
 
     def execute(self, threads):
         """ Start threads. Get and save data in infinite loop """
+
+        if threads <= 0:
+            raise Exception("Need more threads!")
+
         self.state = 1
         for i in range(0, threads):
             self.threads_number += 1
@@ -179,7 +184,7 @@ class Executor():
                     self.result_pool = []
                     self.local_queue.renew()
 
-                sleep(self.time_between)
+                sleep(self.waiting)
         else:
             while not self.local_queue.ended:
                 sleep(1)

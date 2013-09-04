@@ -117,8 +117,8 @@ class DBAdapter():
                     'uid': metric_id
                 })
 
-            # TODO: what we will do?
             else:
+                # TODO: log error somewhere
                 pass
 
         return metrics
