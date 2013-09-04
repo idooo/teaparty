@@ -15,6 +15,4 @@ results
 .idea
 .DS_store
 
-server/teaparty/db
-
-npm-debug.log
+*.db

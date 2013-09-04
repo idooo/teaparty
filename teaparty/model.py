@@ -208,44 +208,23 @@ class DBAdapter():
 
         return result
 
-    def addGroup(self, elb, instances):
+    def addGroup(self, group_name, elb, instances, cursor=None):
+        if not cursor:
+            cursor = self.connection.cursor()
 
         instances_ids = self.__listToStr(instances)
+        group_uid = self.__uid('groups')
 
-        c = self.connection.cursor()
+        query = 'INSERT INTO groups VALUES ({0}, "{1}", {2}, "{3}")'.format(group_uid, group_name, elb, instances_ids)
+        cursor.execute(query)
 
-        # If group has ELB
-        if elb:
-            result = self.__isExist('groups', 'elb='+str(elb)+'')
-            if not result:
-                group_uid = self.__uid('groups')
+        self.connection.commit()
 
-                query = 'INSERT INTO groups VALUES ({0}, "", {1}, "{2}")'.format(group_uid, elb, instances_ids)
-                c.execute(query)
+        return group_uid
 
-                self.connection.commit()
-
-                return group_uid
-
-            else:
-                pass
-                # TODO: Update existing
-
-        elif instances_ids:
-
-            # TODO: add logic
-            # if there is not ELB in group
-
-            result = self.__isExist('groups', 'instances="'+instances_ids+'"')
-            if result:
-                pass
-            else:
-                # Update current group
-                pass
-
-
-        else:
-            raise Exception("Empty group")
+    def updateGroup(self, group_name, elb, instances):
+        # TODO: update group logic
+        pass
 
     def addMetricValues(self, metric_uid, values, cursor=None):
         # It's better for performance to pass cursor instead create new
@@ -403,7 +382,7 @@ class DBAdapter():
 
     def importDataFromFile(self, config, elbs={}):
 
-        if not isinstance(config, dict):
+        if not isinstance(config, list):
             try:
                 config_module = imp.load_source('config', config)
                 config = config_module.config
@@ -411,11 +390,16 @@ class DBAdapter():
                 print "Config file %s not found." % config
                 sys.exit(1)
 
-        # TODO: Error handling
         for obj in config:
 
+            if not 'type' in obj or obj['type'] == 'block':
+                elb_uid = 0
+                instances_uids = []
+                for instance in obj['instances']:
+                    instances_uids.append(self.addInstance(instance, obj['metrics']))
+
             # Load balancer logic
-            if obj['type'] == 'elb':
+            elif obj['type'] == 'elb':
 
                 if not obj['name'] in elbs:
                     raise Exception('There is not ELB with name ' + obj['name'])
@@ -424,16 +408,13 @@ class DBAdapter():
 
                 elb_uid = self.addELB(obj['name'], obj['metrics'])
                 instances_uids = []
-
                 for instance in obj['instances']:
                     instances_uids.append(self.addInstance(instance.id, obj['child_metrics']))
 
-                self.addGroup(elb_uid, instances_uids)
 
+            result = self.__isExist('groups', 'name="' + obj['name'] +'"')
+            if result:
+                self.updateGroup(obj['name'], elb_uid, instances_uids)
 
-
-
-
-
-
-
+            else:
+                self.addGroup(obj['name'], elb_uid, instances_uids)

@@ -1,7 +1,7 @@
 __author__ = 'ido'
 
-from sys import path
-path.append('../')
+import sys
+sys.path.append('../')
 
 import unittest
 from sqlite3 import OperationalError
@@ -9,9 +9,15 @@ from sqlite3 import OperationalError
 from teaparty import model, ELBHelper
 from mock import Mock
 
-class dumbELBs():
+from conf import config
+
+class _ELBs():
     def __init__(self, data):
         self.instances = data[:]
+
+class _EC():
+    def __init__(self, _id):
+        self.id = _id
 
 class ModelTestCase(unittest.TestCase):
 
@@ -125,13 +131,73 @@ class ModelTestCase(unittest.TestCase):
         self.assertEqual(data[0]['name'], 'pewpewpew')
         self.assertEqual(data[1]['caption'], 'Hours')
 
-
     def test_importDataFromFile(self):
-        elbs = { 'test': dumbELBs(['i-0001', 'i-0003'])}
 
-        self.model.addELB = Mock(return_value=118)
-        self.model.addInstance = Mock(return_value=112)
-        self.model.addGroup = Mock(return_value=113)
+        def addELB(elb_name, metrics):
+            values = {'test-elb': 1}
+            _id = values[elb_name]
+
+            if _id == 1:
+                self.assertEqual(elb_name, 'test-elb')
+                self.assertEqual(metrics, ['Latency|Seconds', 'RequestCount|Count'])
+
+            return values[elb_name]
+
+        def addInstance(instance_id, metrics):
+            values = {'i-0001': 1, 'i-0002': 2, 'i-0003': 3, 'i-0004': 4, 'i-0005': 5, 'i-pew': 6}
+            _id = values[instance_id]
+
+            if _id in [1, 3]:
+                self.assertEqual(metrics, ['test1', 'test2', 'test3||path:/data,year:2010'])
+
+            elif _id in [1, 3]:
+                self.assertEqual(metrics, ['test4', 'test5', 'test6||Path:/data'])
+
+            return _id
+
+        def addGroup(group_name, elb, instances):
+            values = {'test-elb': 1, 'First Wave': 2}
+            _id = values[str(group_name)]
+
+            if _id == 1:
+                self.assertEqual(elb, 1)
+                self.assertEqual(instances, [1,3])
+            elif _id == 2:
+                self.assertEqual(elb, 0)
+                self.assertEqual(instances, [4, 5, 6])
+
+            return _id
+
+        elbs = {
+            'test-elb': _ELBs([_EC('i-0001'), _EC('i-0003')]),
+        }
+
+        self.model.addELB = addELB
+        self.model.addInstance = addInstance
+        self.model.addGroup = addGroup
+
+        self.model.importDataFromFile(config, elbs)
+
+    def test_addGroup(self):
+        tests = [
+            { 'uid': None, 'name': 'test1', 'elb': 999, 'instances': [4] },
+            { 'uid': None, 'name': 'test2', 'elb': 1001, 'instances': [123, 129] },
+            { 'uid': None, 'name': 'test1', 'elb': 999, 'instances': [124, 125, 120] }
+        ]
+
+        for test in tests:
+            test['uid'] = self.model.addGroup(test['name'], test['elb'], test['instances'])
+
+        groups = self.model.getGroups()
+        _hash = {}
+
+        for group in groups:
+            _hash.update({str(group['uid']): group})
+
+        for test in tests:
+            item = _hash[str(test['uid'])]
+            for key in ['name', 'instances', 'elb']:
+                self.assertEqual(test[key], item[key])
 
     def test_addMetric(self):
 
