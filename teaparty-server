@@ -46,8 +46,8 @@ def run_dev_server(port=80, debug=False):
 
 if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("-r", "--region", help="Region (default ap-southeast-2)", dest="region", default="ap-southeast-2")
-    parser.add_option("-p", "--port", help="Port to listening (default ap-southeast-2)", dest="port", default=80)
+    parser.add_option("-r", "--region", help="Region (default ap-southeast-2)", action='store_true', default="ap-southeast-2")
+    parser.add_option("-p", "--port", help="Port to listening (default 80)", action='store_true', default=80, type="int")
     parser.add_option('-d', "--debug", help='Debug web server', action='store_true')
     (options, args) = parser.parse_args()
 

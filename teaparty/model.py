@@ -237,7 +237,7 @@ class DBAdapter():
             formatted_values.append('(' + str_metric_uid + ',"' + item['timestamp'] + '","' + str(item['value'])+'")')
 
         query = 'INSERT INTO metric_values VALUES {0}'.format(','.join(formatted_values))
-        cursor.execute(query)
+        return cursor.execute(query)
 
     def getMetrics(self):
         _hash = {}
@@ -316,17 +316,21 @@ class DBAdapter():
 
         metric_values = []
 
-        date_filter = ''
-        if date:
-            date_filter = 'WHERE date>="' + date + '"'
-
-        query = 'SELECT * FROM metric_values {0} ORDER BY date'.format(date_filter)
-
+        where = []
         if metric_uid:
-            query += ' WHERE metric_uid=' + str(metric_uid)
+            where.append('metric_uid=' + str(metric_uid))
 
-        for row in cursor.execute(query):
-            metric_values.append(row)
+        if date:
+            where.append('date>="' + date + '"')
+
+        if where:
+            query = 'SELECT * FROM metric_values WHERE {0} ORDER BY date'.format(' AND '.join(where))
+
+        rows = cursor.execute(query)
+
+        if rows:
+            for row in rows:
+                metric_values.append(row)
 
         return metric_values
 

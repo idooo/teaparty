@@ -225,6 +225,80 @@ class ModelTestCase(unittest.TestCase):
             result = self.__get('metrics', uid)
             self.assertEqual(result[1:], case['out'])
 
+    def test_addELB(self):
+        tests = [
+            {'name': 'test_one_more', 'metrics': ['testELB1', 'testELB2'], 'uid': None},
+            {'name': 'test_one_more', 'metrics': ['testELB2', 'testELB3'], 'uid': None},
+            {'name': 'test_one_more1', 'metrics': ['testELB8', 'testELB7', 'add'], 'uid': None, 'duplicate': True},
+            {'name': 'test_one_more2', 'metrics': ['testELB21'], 'uid': None},
+            {'name': 'test_one_more1', 'metrics': [], 'uid': None, 'duplicate': True}
+        ]
+
+        for test in tests:
+            test['uid'] = self.model.addELB(test['name'], test['metrics'])
+
+        self.assertEqual(tests[0]['uid'], tests[1]['uid'])
+
+        elbs = self.model.getELBs()
+        for test in tests:
+            elb = elbs[str(test['uid'])]
+            self.assertEqual(test['name'], elb['name'])
+            self.assertEqual(test['uid'], elb['uid'])
+
+            if not 'duplicate' in test:
+                self.assertEqual(len(test['metrics']), len(elb['metrics']))
+
+    def test_addInstance(self):
+        tests = [
+            {'id': '11111', 'metrics': ['testINST1', 'testINST6'], 'uid': None},
+            {'id': '22222', 'metrics': ['testINST2', 'testINST7'], 'uid': None},
+            {'id': '33333', 'metrics': ['testINST3', 'testINST8', 'add'], 'uid': None},
+            {'id': '11111', 'metrics': ['testINST3'], 'uid': None, 'duplicate': True},
+            {'id': '22222', 'metrics': [], 'uid': None, 'duplicate': True}
+        ]
+
+        for test in tests:
+            test['uid'] = self.model.addInstance(test['id'], test['metrics'])
+
+        instances = self.model.getInstances()
+        for test in tests:
+            instance = instances[str(test['uid'])]
+            self.assertEqual(test['id'], instance['id'])
+            self.assertEqual(test['uid'], instance['uid'])
+
+            if not 'duplicate' in test:
+                self.assertEqual(len(test['metrics']), len(instance['metrics']))
+
+    def test_addMetricValues(self):
+        cursor = self.model.connection.cursor()
+
+        tests = [
+            {'uid': 1, 'values': [
+                {'timestamp': '2000-10-03 10:30', 'value': 0.1},
+                {'timestamp': '2000-10-03 10:32', 'value': 0.2}
+            ]},
+            {'uid': 2, 'values': [
+                {'timestamp': '2001-10-03 10:30', 'value': 0.3},
+                {'timestamp': '2001-10-03 10:32', 'value': 0.4}
+            ]},
+            {'uid': 1, 'values': [
+                {'timestamp': '2001-10-03 10:30', 'value': 0.5},
+            ]},
+            {'uid': 3, 'values': [
+                {'timestamp': '2002-10-03 10:30', 'value': 0.7},
+            ]},
+            {'uid': 1, 'values': [
+                {'timestamp': '1984-10-03 10:30', 'value': 0.6},
+            ]}
+        ]
+
+        for test in tests:
+            self.model.addMetricValues(test['uid'], test['values'], cursor=cursor)
+
+        self.model.connection.commit()
+
+        metric_values = self.model.getMetricValues(1, '2000', cursor)
+        self.assertEqual(3, len(metric_values))
 
 if __name__ == '__main__':
     unittest.main()
