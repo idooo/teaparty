@@ -16,3 +16,7 @@ results
 .DS_store
 
 *.db
+
+.coverage
+
+teaparty/cover
