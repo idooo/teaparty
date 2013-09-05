@@ -1,8 +1,8 @@
 require.config({
     paths: {
-        socketio: 'lib/socketio/socket.io',
-        angular: 'lib/angular/angular',
-        text: 'lib/require/text',
+        socketio: 'vendor/socketio/socket.io',
+        angular: 'vendor/angular/angular',
+        text: 'vendor/require/text',
 
         // modules
         progressbar: 'src/components/ngProgress'
