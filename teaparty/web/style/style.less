@@ -12,17 +12,19 @@ body {
 
     padding-bottom: 10px;
 
-    .instance {
+    .instance-state {
 
       float: left;
       height: 20px;
       width: 20px;
       margin-right: 10px;
       border-radius: 10px;
+      background-color: #eeeeee;
 
-      &.status-1 { background-color: green; }
-      &.status-2 { background-color: yellow; }
-      &.status-3 { background-color: red; }
+      &.state-running { background-color: green; }
+      &.state-stopped { background-color: #aaa; }
+      &.state-2 { background-color: yellow; }
+      &.state-3 { background-color: red; }
 
     }
 
@@ -30,17 +32,18 @@ body {
 
   .alarms {
 
-    .alarm {
+    .alarm-state {
 
       float: left;
       height: 10px;
       width: 10px;
       margin-right: 5px;
       border-radius: 5px;
+      background-color: #eeeeee;
 
-      &.status-1 { background-color: green; }
-      &.status-2 { background-color: yellow; }
-      &.status-3 { background-color: red; }
+      &.state-INSUFFICIENT_DATA { background-color: #aaa; }
+      &.state-OK { background-color: green; }
+      &.state-ALARM { background-color: red; }
 
     }
 

@@ -87,7 +87,7 @@ class CloudWatchHelper():
             for alarm in _raw:
                 alarms.append({
                     'name': alarm.name,
-                    'status': alarm.state_value
+                    'state': alarm.state_value
                 })
 
             result['statuses'] = alarms

@@ -7,36 +7,41 @@ body {
 .overview .instances {
   padding-bottom: 10px;
 }
-.overview .instances .instance {
+.overview .instances .instance-state {
   float: left;
   height: 20px;
   width: 20px;
   margin-right: 10px;
   border-radius: 10px;
+  background-color: #eeeeee;
 }
-.overview .instances .instance.status-1 {
+.overview .instances .instance-state.state-running {
   background-color: green;
 }
-.overview .instances .instance.status-2 {
+.overview .instances .instance-state.state-stopped {
+  background-color: #aaa;
+}
+.overview .instances .instance-state.state-2 {
   background-color: yellow;
 }
-.overview .instances .instance.status-3 {
+.overview .instances .instance-state.state-3 {
   background-color: red;
 }
-.overview .alarms .alarm {
+.overview .alarms .alarm-state {
   float: left;
   height: 10px;
   width: 10px;
   margin-right: 5px;
   border-radius: 5px;
+  background-color: #eeeeee;
 }
-.overview .alarms .alarm.status-1 {
+.overview .alarms .alarm-state.state-INSUFFICIENT_DATA {
+  background-color: #aaa;
+}
+.overview .alarms .alarm-state.state-OK {
   background-color: green;
 }
-.overview .alarms .alarm.status-2 {
-  background-color: yellow;
-}
-.overview .alarms .alarm.status-3 {
+.overview .alarms .alarm-state.state-ALARM {
   background-color: red;
 }
 .dashboard_block .item {

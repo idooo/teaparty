@@ -1,12 +1,16 @@
 <div class="overview">
 
     <div class="instances">
-        <div ng-repeat="instance in instances.statuses" class="instance status-{{ instance.status }}" ></div>
+        <div ng-repeat="instance in instances.statuses"
+             class="instance-state state-{{ instance.state }}" ></div>
+
         <div class="clear"></div>
     </div>
 
     <div class="alarms">
-        <div ng-repeat="alarm in alarms.statuses" class="alarm status-{{ alarm.status }}"></div>
+        <div ng-repeat="alarm in alarms.statuses"
+             class="alarm-state state-{{ alarm.state }}"></div>
+
         <div class="clear"></div>
     </div>
 

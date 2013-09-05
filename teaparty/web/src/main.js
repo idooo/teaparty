@@ -2,7 +2,10 @@ require.config({
     paths: {
         socketio: 'lib/socketio/socket.io',
         angular: 'lib/angular/angular',
-        text: 'lib/require/text'
+        text: 'lib/require/text',
+
+        // modules
+        progressbar: 'src/components/ngProgress'
     },
 
     // prevent caching for dev purposes

@@ -45,7 +45,8 @@ class EC2Helper():
 
                 instances.append({
                     'id': instance.id,
-                    'status': instance.state_code
+                    'state_code': instance.state_code,
+                    'state': instance.state
                 })
 
             result['total'] = len(instances)
