@@ -24,6 +24,10 @@ class ELBHelper():
 
         self.conn = boto.ec2.elb.connect_to_region(region)
 
+        if not self.conn:
+            raise Exception('Invalid region name')
+            return False
+
     def getLoadBalancers(self):
         """
         Get load balancers and format it in friendly format

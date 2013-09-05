@@ -17,8 +17,8 @@ class MetricDaemon():
     executor = None
 
     def __init__(self, region, config_filename, latency=2, waiting=15, debug=False):
-        self.cw = CloudWatchHelper(region.name)
-        self.elb = ELBHelper(region.name)
+        self.cw = CloudWatchHelper(region)
+        self.elb = ELBHelper(region)
 
         self.model = DBAdapter()
         self.model.importDataFromFile(config_filename, self.elb.getLoadBalancers())
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-r", "--region", help="Region (default ap-southeast-2)", dest="region", default="ap-southeast-2")
     parser.add_option('-d', "--debug", help='Debug web server', action='store_true')
-    parser.add_option('-t', dest='threads', help='Amount of threads', type="int")
+    parser.add_option('-t', dest='threads', help='Amount of threads', type="int", default=4)
     parser.add_option('-l', dest='latency', help='Latency in seconds between requests', type="int", default=4)
     parser.add_option('-w', dest='waiting', help='Waiting time in seconds between queue reload', type="int", default=15)
     parser.add_option("-c", "--config", help="Configuration file (/etc/teaparty.conf by default)", dest="config", default="/etc/teaparty.conf")
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     # Check region
     for r in regions():
         if r.name == options.region:
-            region = r
+            region = r.name
             break
     else:
         print "Region %s not found." % options.region

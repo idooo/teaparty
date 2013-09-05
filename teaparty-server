@@ -4,60 +4,31 @@ import os
 import sys
 from optparse import OptionParser
 from boto.ec2 import regions
-from teaparty.sockets import TeapartyNamespace
-from flask import Flask, render_template, Response, request, jsonify
 
-import werkzeug.serving
-from gevent import monkey
-from socketio import socketio_manage
-from socketio.server import SocketIOServer
-
-SOCKET_URL = '/socket'
-ROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'teaparty/web')
-REGION = ''
-
-app = Flask(
-    __name__,
-    static_folder=ROOT,
-    static_url_path='',
-    template_folder=ROOT
-)
-monkey.patch_all()
-
-
-@app.route("/")
-def main():
-    return render_template('index.html')
-
-
-@app.route('/socket.io/<path:rest>')
-def push_stream(rest):
-    try:
-        socketio_manage(request.environ, {SOCKET_URL: TeapartyNamespace}, request)
-    except:
-        app.logger.error("Exception while handling socketio connection", exc_info=True)
-    return Response()
-
-
-@werkzeug.serving.run_with_reloader
-def run_dev_server(port=80, debug=False):
-    app.debug = debug
-    SocketIOServer(('', port), app, resource="socket.io").serve_forever()
+params = {
+    'socket_url': '/socket',
+    'root': os.path.join(os.path.abspath(os.path.dirname(__file__)), 'teaparty/web'),
+    'region': ''
+}
 
 if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("-r", "--region", help="Region (default ap-southeast-2)", action='store_true', default="ap-southeast-2")
-    parser.add_option("-p", "--port", help="Port to listening (default 80)", action='store_true', default=80, type="int")
+    parser.add_option("-r", "--region", help="Region (default ap-southeast-2)", default="ap-southeast-2")
+    parser.add_option("-p", "--port", help="Port to listening (default 80)", default=80, type="int")
     parser.add_option('-d', "--debug", help='Debug web server', action='store_true')
     (options, args) = parser.parse_args()
 
     # Check region
     for r in regions():
         if r.name == options.region:
-            REGION = r
+            params['region'] = r.name
             break
     else:
         print "Region %s not found." % options.region
         sys.exit(1)
 
-    run_dev_server(int(options.port), options.debug)
+    params['port'] = int(options.port)
+    params['debug'] = options.debug
+
+    import teaparty.server
+    teaparty.server.run_dev_server()

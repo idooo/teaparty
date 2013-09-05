@@ -1,19 +1,15 @@
 from socketio.namespace import BaseNamespace
-from teaparty.model import DBAdapter, CloudWatchHelper, EC2Helper
-
-try:
-    from __main__ import REGION
-except ImportError:
-    REGION = None
+from teaparty import DBAdapter, CloudWatchHelper, EC2Helper
+import __main__
 
 class TeapartyNamespace(BaseNamespace):
     sockets = {}
 
-    region = REGION
-
-    db = DBAdapter()
-    cw = CloudWatchHelper(region)
-    ec2 = EC2Helper(region)
+    def initialize(self):
+        region = __main__.params['region']
+        self.db = DBAdapter()
+        self.cw = CloudWatchHelper(region)
+        self.ec2 = EC2Helper(region)
 
     def recv_connect(self):
         print "Got a socket connection" # debug
