@@ -59,7 +59,7 @@ class MetricDaemon():
                 self.queue.add('instance', instances[instance_uid]['id'], metric)
 
     def start(self, threads=4):
-        if not self.queue:
+        if self.queue.isEmpty():
             print 'Queue is empty. Please load config first'
             return False
 

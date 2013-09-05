@@ -41,6 +41,9 @@ class metricQueue(list):
 
         return True
 
+    def isEmpty(self):
+        return not bool(self.body)
+
     def next(self):
         """
         Move cursor to next position. Mark queue as ended 
