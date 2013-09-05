@@ -3,7 +3,7 @@
 import sys
 from optparse import OptionParser
 from boto.ec2 import regions
-from teaparty import CloudWatchHelper, ELBHelper, DBAdapter, Executor
+from teaparty import CloudWatchHelper, ELBHelper, DBAdapter, Executor, metricQueue
 
 # TODO: Move to library
 
@@ -14,7 +14,7 @@ class MetricDaemon():
     cw = None
     model = None
 
-    queue = []
+    queue = None
 
     executor = None
 
@@ -29,47 +29,16 @@ class MetricDaemon():
 
         self.executor = Executor(self.cw.getMetricData, self.queue, latency=latency, waiting=waiting, debug=debug)
 
-    def __addToQueue(self, obj_type, obj_code, metric):
-
-        dimensions = metric['dimensions']
-
-        if obj_type == 'elb':
-            dimensions.update({'LoadBalancerName': obj_code})
-
-        elif obj_type == 'instance':
-            dimensions.update({'InstanceId': obj_code})
-
-        else:
-            raise Exception('Unknown object type ' + str(obj_type))
-
-        item = {
-            'name': metric['name'],
-            'uid': metric['uid'],
-            'dimensions': dimensions,
-            'namespace': metric['namespace'],
-            'unit': metric['unit']
-        }
-
-        self.queue.append(item.copy())
-
-    def __getNamespaces(self, dimensions):
-        metrics = self.cw.getMetrics(dimensions=dimensions)
-        namespaces = {}
-        for metric in metrics:
-            namespaces.update({str(metric.name): metric.namespace})
-
-        return namespaces
-
-    def __addNamespace(self, metric, namespaces):
-        if metric['name'] in namespaces:
-            metric['namespace'] = namespaces[metric['name']]
-            return metric
-
-        return False
-
     def createQueue(self):
 
-        self.queue = []
+        def addNamespace(metric, namespaces):
+            if metric['name'] in namespaces:
+                metric['namespace'] = namespaces[metric['name']]
+                return metric
+
+            return False
+
+        self.queue = metricQueue()
 
         metrics = self.model.getMetrics()
         instances = self.model.getInstances()
@@ -77,19 +46,17 @@ class MetricDaemon():
 
         for elb_uid in elbs:
             elb_name = elbs[elb_uid]['name']
-            namespaces = self.__getNamespaces({'LoadBalancerName': elb_name})
+            namespaces = self.cw.getNamespaces({'LoadBalancerName': elb_name})
 
             for metric_uid in elbs[elb_uid]['metrics']:
-                metric = self.__addNamespace(metrics[str(metric_uid)], namespaces)
-                if metric:
-                    self.__addToQueue('elb', elb_name, metric)
+                metric = addNamespace(metrics[str(metric_uid)], namespaces)
+                self.queue.add('elb', elb_name, metric)
 
         for instance_uid in instances:
-            namespaces = self.__getNamespaces({'InstanceId': instances[instance_uid]['id']})
+            namespaces = self.cw.getNamespaces({'InstanceId': instances[instance_uid]['id']})
             for metric_uid in instances[instance_uid]['metrics']:
-                metric = self.__addNamespace(metrics[str(metric_uid)], namespaces)
-                if metric:
-                    self.__addToQueue('instance', instances[instance_uid]['id'], metric)
+                metric = addNamespace(metrics[str(metric_uid)], namespaces)
+                self.queue.add('instance', instances[instance_uid]['id'], metric)
 
     def start(self, threads=4):
         if not self.queue:

@@ -1,4 +1,4 @@
-__version__ = 0.1
+__version__ = 0.2
 
 import sys
 if sys.argv[0] != 'setup.py':
@@ -7,6 +7,7 @@ if sys.argv[0] != 'setup.py':
     from cloudwatch_helper import *
     from elb_helper import *
     from model import *
+    from metric_queue import *
     from executor import *
 
     try:

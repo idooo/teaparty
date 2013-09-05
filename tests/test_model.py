@@ -6,7 +6,7 @@ sys.path.append('../')
 import unittest
 from sqlite3 import OperationalError
 
-from teaparty import model, ELBHelper
+from teaparty import model
 from mock import Mock
 
 from conf import config

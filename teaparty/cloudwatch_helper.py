@@ -27,6 +27,14 @@ class CloudWatchHelper():
             raise Exception('Invalid region name')
             return False
 
+    def getNamespaces(self, dimensions):
+        metrics = self.getMetrics(dimensions=dimensions)
+        namespaces = {}
+        for metric in metrics:
+            namespaces.update({str(metric.name): metric.namespace})
+
+        return namespaces
+
     def getMetricData(self, metric_name, namespace, dimensions, unit, statistics='Average', minutes=15, period=60):
         """
         Wrapper for boto Cloudwatch get_metric_statistics, but with predifined
