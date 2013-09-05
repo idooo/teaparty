@@ -16,9 +16,7 @@ class ExecutorTestCase(unittest.TestCase):
         def mocker():
             pass
 
-        queue = []
-
-        self.e = executor.Executor(mocker, queue)
+        self.e = executor.Executor(mocker)
 
     def test_aa(self):
         self.assertTrue(1)

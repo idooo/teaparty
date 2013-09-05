@@ -80,7 +80,7 @@ class Executor():
 
     result_pool = []
 
-    def __init__(self, proc, items, latency=2, waiting=15, debug=False):
+    def __init__(self, proc, queue=None, latency=2, waiting=15, debug=False):
         """
         :type proc: method
         :param proc: method to execute
@@ -94,8 +94,11 @@ class Executor():
         :type debug: bool
         :param debug: Debug mode
         """
-        self.local_queue = metricQueue()
-        self.local_queue.add(items)
+
+        if not queue:
+            queue = metricQueue()
+
+        self.local_queue = queue
         self.latency = latency
         self.proc = proc
         self.debug = debug

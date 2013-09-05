@@ -5,8 +5,6 @@ from optparse import OptionParser
 from boto.ec2 import regions
 from teaparty import CloudWatchHelper, ELBHelper, DBAdapter, Executor, metricQueue
 
-# TODO: Move to library
-
 # TODO: Unit tests
 
 class MetricDaemon():

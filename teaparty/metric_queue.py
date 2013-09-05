@@ -27,7 +27,7 @@ class metricQueue(list):
             dimensions.update({'InstanceId': obj_code})
 
         else:
-            raise Exception('Unknown object type ' + str(obj_type))
+            raise NameError('Unknown object type ' + str(obj_type))
 
         item = {
             'name': metric['name'],
