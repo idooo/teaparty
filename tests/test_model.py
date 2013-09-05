@@ -27,14 +27,19 @@ class ModelTestCase(unittest.TestCase):
 
         data = {
             'groups': [
-                [1, '', 1, '1|2']
+                [1, '', 1, '1|2'],
+                [2, 'new group', 0, '3|4|5']
             ],
             'elbs': [
-                [1, 'test', '1|2']
+                [1, 'test_bi_elb', '1|2']
             ],
             'instances': [
                 [1, 'i-0001', '3|4'],
-                [2, 'i-0003', '5|6']
+                [2, 'i-0003', '5|6'],
+                [3, 'i-0004', '7|8'],
+                [4, 'i-0005', '9|10'],
+                [5, 'i-0006', '12|11'],
+                [6, 'i-0007', '13|14']
             ],
             'metrics': [
                 [1,"Latency", "", "Seconds" ],
@@ -42,7 +47,8 @@ class ModelTestCase(unittest.TestCase):
                 [3,"pewpewpew", "", "Percent" ],
                 [4,"UsedMemoryPercent", "", "Percent" ],
                 [5,"UsedSpacePercent", "Path:/data", "Hours" ],
-                [6,"test", "path:/data,year:2010", "Percent" ]
+                [6,"test", "path:/data,year:2010", "Percent" ],
+                [7,"pewpewpew", "", "Percent" ],
             ],
             'metric_values': [
 
@@ -180,9 +186,9 @@ class ModelTestCase(unittest.TestCase):
 
     def test_addGroup(self):
         tests = [
-            { 'uid': None, 'name': 'test1', 'elb': 999, 'instances': [4] },
+            { 'uid': None, 'name': 'test1', 'elb': 1002, 'instances': [4] },
             { 'uid': None, 'name': 'test2', 'elb': 1001, 'instances': [123, 129] },
-            { 'uid': None, 'name': 'test1', 'elb': 999, 'instances': [124, 125, 120] }
+            { 'uid': None, 'name': 'test1', 'elb': 1003, 'instances': [124, 125, 120] }
         ]
 
         for test in tests:
@@ -198,6 +204,10 @@ class ModelTestCase(unittest.TestCase):
             item = _hash[str(test['uid'])]
             for key in ['name', 'instances', 'elb']:
                 self.assertEqual(test[key], item[key])
+
+        cursor = self.model.connection.cursor()
+        cursor.execute('DELETE FROM groups WHERE elb>=1000')
+        self.model.connection.commit()
 
     def test_addMetric(self):
 
@@ -269,26 +279,26 @@ class ModelTestCase(unittest.TestCase):
             if not 'duplicate' in test:
                 self.assertEqual(len(test['metrics']), len(instance['metrics']))
 
-    def test_addMetricValues(self):
+    def test_add_get_MetricValues(self):
         cursor = self.model.connection.cursor()
 
         tests = [
             {'uid': 1, 'values': [
-                {'timestamp': '2000-10-03 10:30', 'value': 0.1},
-                {'timestamp': '2000-10-03 10:32', 'value': 0.2}
+                {'timestamp': '2000-10-03 10:30', 'value': 0.13},
+                {'timestamp': '2000-10-03 10:32', 'value': 0.23}
             ]},
             {'uid': 2, 'values': [
-                {'timestamp': '2001-10-03 10:30', 'value': 0.3},
-                {'timestamp': '2001-10-03 10:32', 'value': 0.4}
+                {'timestamp': '2001-10-03 10:30', 'value': 0.33},
+                {'timestamp': '2001-10-03 10:32', 'value': 0.43}
             ]},
             {'uid': 1, 'values': [
-                {'timestamp': '2001-10-03 10:30', 'value': 0.5},
+                {'timestamp': '2001-10-03 10:30', 'value': 0.53},
             ]},
             {'uid': 3, 'values': [
-                {'timestamp': '2002-10-03 10:30', 'value': 0.7},
+                {'timestamp': '2002-10-03 10:30', 'value': 0.73},
             ]},
             {'uid': 1, 'values': [
-                {'timestamp': '1984-10-03 10:30', 'value': 0.6},
+                {'timestamp': '1984-10-03 10:30', 'value': 0.63},
             ]}
         ]
 
@@ -299,6 +309,80 @@ class ModelTestCase(unittest.TestCase):
 
         metric_values = self.model.getMetricValues(1, '2000', cursor)
         self.assertEqual(3, len(metric_values))
+
+    def test_getLastMetricValueDate(self):
+        cursor = self.model.connection.cursor()
+        cursor.execute('DELETE FROM metric_values WHERE value>0')
+
+        tests = [
+            {'uid': 100, 'values': [
+                {'timestamp': '2000-10-03 10:30', 'value': 0.11},
+                {'timestamp': '2000-10-03 10:32', 'value': 0.21}
+            ]},
+            {'uid': 200, 'values': [
+                {'timestamp': '2001-10-03 10:30', 'value': 0.31},
+                {'timestamp': '2001-10-03 10:32', 'value': 0.41}
+            ]},
+            {'uid': 100, 'values': [
+                {'timestamp': '2010-12-12 0:00', 'value': 0.51},
+            ]},
+            {'uid': 300, 'values': [
+                {'timestamp': '2002-10-03 10:30', 'value': 0.71},
+            ]},
+            {'uid': 100, 'values': [
+                {'timestamp': '1984-10-03 10:30', 'value': 0.61},
+            ]}
+        ]
+
+        for test in tests:
+            self.model.addMetricValues(test['uid'], test['values'], cursor=cursor)
+        self.model.connection.commit()
+
+        self.assertEqual(self.model.getLastMetricValueDate(100), '2010-12-12 0:00')
+        self.assertEqual(self.model.getLastMetricValueDate(200), '2001-10-03 10:32')
+
+    def test_deleteOldMetricValues(self):
+        cursor = self.model.connection.cursor()
+        cursor.execute('DELETE FROM metric_values WHERE value>0')
+
+        tests = [
+            {'uid': 1, 'values': [
+                {'timestamp': '2000-10-03 10:31', 'value': 0.12},
+                {'timestamp': '2000-10-03 10:32', 'value': 0.22},
+                {'timestamp': '2000-10-03 10:33', 'value': 0.62},
+            ]},
+            {'uid': 2, 'values': [
+                {'timestamp': '2001-10-03 10:30', 'value': 0.32},
+                {'timestamp': '2001-10-03 10:32', 'value': 0.42}
+            ]},
+            {'uid': 3, 'values': [
+                {'timestamp': '2002-10-03 10:30', 'value': 0.72},
+            ]},
+            {'uid': 1, 'values': [
+                {'timestamp': '1984-10-03 10:30', 'value': 0.62},
+            ]}
+        ]
+
+        for test in tests:
+            self.model.addMetricValues(test['uid'], test['values'], cursor=cursor)
+
+        self.model.connection.commit()
+
+        self.model.deleteOldMetricValues('2000-10-03 10:32')
+        metric_values = self.model.getMetricValues(1, '1900', cursor)
+        self.assertEqual(len(metric_values), 2)
+
+    def test_reflectStructure(self):
+        structure = self.model.reflectStructure()
+
+        self.assertEqual(structure[0]['type'], 'elb')
+        self.assertEqual(structure[0]['name'], 'test_bi_elb')
+        self.assertEqual(len(structure[0]['instances']), 2)
+
+        self.assertEqual(structure[1]['type'], 'block')
+        self.assertEqual(structure[1]['name'], 'new group')
+        self.assertEqual(len(structure[1]['instances']), 3)
+
 
 if __name__ == '__main__':
     unittest.main()

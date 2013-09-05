@@ -123,6 +123,15 @@ class DBAdapter():
 
         return metrics
 
+    def clearTables(self):
+        c = self.connection.cursor()
+        for table in self.format:
+            query = 'DELETE FROM {0}'.format(table['name'])
+
+            c.execute(query)
+
+        self.connection.commit()
+
     def getCounters(self):
         c = self.connection.cursor()
 
@@ -296,7 +305,7 @@ class DBAdapter():
 
         return _results
 
-    def getLastMetricValue(self, uid, cursor=None):
+    def getLastMetricValueDate(self, uid, cursor=None):
         # It's better for performance to pass cursor instead create new
         if not cursor:
             cursor = self.connection.cursor()
@@ -338,7 +347,7 @@ class DBAdapter():
         if not cursor:
             cursor = self.connection.cursor()
 
-        query = 'DELETE FROM metric_values WHERE date<{0}'.format(last_time)
+        query = 'DELETE FROM metric_values WHERE date<"{0}"'.format(last_time)
         cursor.execute(query)
 
     def reflectStructure(self):
@@ -352,17 +361,24 @@ class DBAdapter():
 
         for group in groups:
             block = {
-                'name': '',
+                'name': group['name'],
                 'type': 'block',
                 'instances': []
             }
 
             if group['elb']:
-                elb = elbs[str(group['elb'])]
-                block.update({
-                    'name': elb['name'],
-                    'metrics': self.__retriveFormattedMetrics(elb['metrics'], all_metrics)
-                })
+                if str(group['elb']) in elbs:
+
+                    elb = elbs[str(group['elb'])]
+                    block.update({
+                        'name': elb['name'],
+                        'type': 'elb',
+                        'metrics': self.__retriveFormattedMetrics(elb['metrics'], all_metrics)
+                    })
+
+                else:
+                    # TODO: log this!
+                    pass
 
             instances = []
             for instance_id in group['instances']:

@@ -221,7 +221,7 @@ class Executor():
 
             stat_name = self.__getMetricStatName(datapoints[0])
 
-            last_metric_date = self.db.getLastMetricValue(metric_uid, cursor=c)
+            last_metric_date = self.db.getLastMetricValueDate(metric_uid, cursor=c)
 
             new_points = []
             for point in datapoints:
