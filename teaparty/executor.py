@@ -74,6 +74,7 @@ class Executor():
     waiting = None
 
     debug = False
+    db = None
 
     proc = None
     local_queue = None

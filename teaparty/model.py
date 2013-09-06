@@ -30,7 +30,7 @@ class DBAdapter():
         },
         {
             'name': 'metrics',
-            'fields': ['uid integer', 'name text', 'dimensions text', 'unit text']
+            'fields': ['uid integer', 'name text', 'dimensions text', 'unit text', 'caption text', 'show_units text']
         },
         {
             'name': 'metric_values',
@@ -113,8 +113,9 @@ class DBAdapter():
             if str_metric_id in all_metrics:
                 metrics.append({
                     'name': all_metrics[str_metric_id]['name'],
-                    'caption': all_metrics[str_metric_id]['unit'],
-                    'units': '__',
+                    'caption': all_metrics[str_metric_id]['caption'],
+                    'show_units': all_metrics[str_metric_id]['show_units'],
+                    'unit': all_metrics[str_metric_id]['unit'],
                     'uid': metric_id
                 })
 
@@ -151,23 +152,30 @@ class DBAdapter():
             self.counters[table['name']] = value
 
     def addMetric(self, metric_name):
+
+        # metric_name | dimensions | units | display name | display units
+
         c = self.connection.cursor()
 
-        dimensions = ''
-        unit = self.DEFAULT_UNIT
-
-        parts = metric_name.split('|', 3)
+        parts = metric_name.split('|', 5)
         metric_name = parts[0]
-        if len(parts) > 1:
-            if parts[1]:
-                unit = parts[1]
-            if len(parts) > 2:
-                dimensions = parts[2]
+
+        params = [
+            '', # dimensions
+            self.DEFAULT_UNIT, # unit
+            metric_name, # display name
+            '' # display units
+        ]
+
+        for i in range(1, len(parts)):
+            part = parts[i].strip()
+            if part:
+                params[i-1] = part
 
         metric_id = self.__uid('metrics')
 
-        query = 'INSERT INTO metrics VALUES ({0}, "{1}", "{2}", "{3}")'\
-            .format(metric_id, metric_name, dimensions, unit)
+        query = 'INSERT INTO metrics VALUES ({0}, "{1}", "{2}", "{3}", "{4}", "{5}")'\
+            .format(metric_id, metric_name, params[0], params[1], params[2], params[3])
 
         c.execute(query)
 
@@ -254,12 +262,16 @@ class DBAdapter():
         c = self.connection.cursor()
         for row in c.execute('SELECT * FROM metrics'):
             dimensions = self.__getDimensions(row[2])
+            caption = row[4].split(':', 2)
+
             _hash.update({
                 str(row[0]) : {
                     'uid': row[0],
                     'name': row[1],
                     'dimensions': dimensions,
-                    'unit': row[3]
+                    'unit': row[3],
+                    'caption': caption,
+                    'show_units': row[5]
                 }
             })
 

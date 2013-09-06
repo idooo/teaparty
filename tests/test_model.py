@@ -42,13 +42,13 @@ class ModelTestCase(unittest.TestCase):
                 [6, 'i-0007', '13|14']
             ],
             'metrics': [
-                [1,"Latency", "", "Seconds" ],
-                [2,"RequestCount",  "", "Count" ],
-                [3,"pewpewpew", "", "Percent" ],
-                [4,"UsedMemoryPercent", "", "Percent" ],
-                [5,"UsedSpacePercent", "Path:/data", "Hours" ],
-                [6,"test", "path:/data,year:2010", "Percent" ],
-                [7,"pewpewpew", "", "Percent" ],
+                [1,"Latency", "", "Seconds", 'latency', 'ms'],
+                [2,"RequestCount",  "", "Count", 'requests', '' ],
+                [3,"pewpewpew", "", "Percent", 'pew', '%' ],
+                [4,"UsedMemoryPercent", "", "Percent", 'memory', '%' ],
+                [5,"UsedSpacePercent", "Path:/data", "Hours", 'memory', 'hrs' ],
+                [6,"test", "path:/data,year:2010", "Percent", 'test', '%' ],
+                [7,"pewpewpew", "", "Percent", 'pew', '%' ],
             ],
             'metric_values': [
 
@@ -135,7 +135,7 @@ class ModelTestCase(unittest.TestCase):
         data = self.model._DBAdapter__retriveFormattedMetrics(a, all_metrics)
 
         self.assertEqual(data[0]['name'], 'pewpewpew')
-        self.assertEqual(data[1]['caption'], 'Hours')
+        self.assertEqual(data[1]['unit'], 'Hours')
 
     def test_importDataFromFile(self):
 
@@ -213,20 +213,20 @@ class ModelTestCase(unittest.TestCase):
 
         cases = [
             {
-                'in': 'Latency|Seconds',
-                'out': ('Latency', '', 'Seconds')
+                'in': 'Latency||Seconds|latency|ms',
+                'out': ('Latency', '', 'Seconds', 'latency', 'ms')
             },
             {
-                'in': 'CPUUtilization|Count|Param:Test',
-                'out': ('CPUUtilization', 'Param:Test', 'Count')
+                'in': 'CPUUtilization|Param:Test|Count|CPU|%',
+                'out': ('CPUUtilization', 'Param:Test', 'Count', 'CPU', '%')
             },
             {
-                'in': 'UsedSpacePercent||Path:/data',
-                'out': ('UsedSpacePercent', 'Path:/data', 'Percent')
+                'in': 'UsedSpacePercent|Path:/data|    |memory',
+                'out': ('UsedSpacePercent', 'Path:/data', 'Percent', 'memory', '')
             },
             {
-                'in': 'test||path:/data,year:2010',
-                'out': ('test', 'path:/data,year:2010', 'Percent')
+                'in': 'test|path:/data,year:2010|Seconds',
+                'out': ('test', 'path:/data,year:2010', 'Seconds', 'test', '')
             }
         ]
 

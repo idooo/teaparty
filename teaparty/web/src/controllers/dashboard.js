@@ -7,21 +7,28 @@ define([], function() {
             var running = [],
                 not_running = [],
                 result = {
-                    running: instances['running'],
-                    total: instances['total'],
+                    running: 0,
+                    total: 0,
                     statuses: []
                 };
 
-            instances['statuses'].forEach(function(status) {
-                if (status.state === 'running') {
-                    running.push(status);
-                }
-                else {
-                    not_running.push(status);
-                }
-            });
+            if (typeof instances !== 'undefined') {
+                result['running'] = instances['running'];
+                result['total'] = instances['total'];
 
-            result['statuses'] = running.concat(not_running);
+
+                instances['statuses'].forEach(function(status) {
+                    if (status.state === 'running') {
+                        running.push(status);
+                    }
+                    else {
+                        not_running.push(status);
+                    }
+                });
+
+                result['statuses'] = running.concat(not_running);
+            }
+
             return result
 
         };
@@ -31,22 +38,28 @@ define([], function() {
                 s_alarm = [],
                 s_others = [],
                 result = {
-                    'count': alarms['count']
+                    'count': 0,
+                    'statuses': []
                 };
 
-            alarms['statuses'].forEach(function(alarm) {
-                if (alarm.state === 'OK') {
-                    s_ok.push(alarm);
-                }
-                else if (alarm.state === 'ALARM') {
-                    s_alarm.push(alarm);
-                }
-                else {
-                    s_others.push(alarm);
-                }
-            });
+            if (typeof alarms !== 'undefined') {
+                result['count'] = alarms['count']
 
-            result['statuses'] = s_alarm.concat(s_ok, s_others);
+                alarms['statuses'].forEach(function(alarm) {
+                    if (alarm.state === 'OK') {
+                        s_ok.push(alarm);
+                    }
+                    else if (alarm.state === 'ALARM') {
+                        s_alarm.push(alarm);
+                    }
+                    else {
+                        s_others.push(alarm);
+                    }
+                });
+
+                result['statuses'] = s_alarm.concat(s_ok, s_others);
+            }
+
             return result
         };
 
@@ -61,6 +74,7 @@ define([], function() {
             $scope.alarms = formatAlarms(data['alarms'])
 
             $scope.blocks = data['structure'];
+            console.log(data);
 
             progressbar.complete();
         });
