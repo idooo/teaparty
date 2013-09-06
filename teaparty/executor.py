@@ -9,7 +9,7 @@ and start jobs again.
 
 import threading
 from time import sleep
-from datetime import datetime, timedelta
+from datetime import datetime
 from teaparty import DBAdapter, metricQueue
 
 
@@ -80,7 +80,10 @@ class Executor():
 
     result_pool = []
 
-    def __init__(self, proc, queue=None, latency=2, waiting=15, debug=False):
+    # debug variable for testing
+    debug_dry_run = False
+
+    def __init__(self, proc, queue, dbname='teaparty.db', latency=2, waiting=15, debug=False):
         """
         :type proc: method
         :param proc: method to execute
@@ -95,16 +98,13 @@ class Executor():
         :param debug: Debug mode
         """
 
-        if not queue:
-            queue = metricQueue()
-
         self.local_queue = queue
         self.latency = latency
         self.proc = proc
         self.debug = debug
         self.waiting = waiting
 
-        self.db = DBAdapter()
+        self.db = DBAdapter(dbname)
 
         # To prevent strptime thread errors
         datetime.strptime('1000', '%Y')
@@ -134,7 +134,10 @@ class Executor():
         if not self.debug:
             while True:
                 if self.local_queue.ended:
+
                     self.saveDataFromPool()
+                    self.db.deleteOldMetricValues()
+
                     self.result_pool = []
                     self.local_queue.renew()
 
@@ -144,7 +147,9 @@ class Executor():
                 sleep(1)
 
             self.stop()
-            self.saveDataFromPool()
+            if not self.debug_dry_run:
+                self.saveDataFromPool()
+                self.db.deleteOldMetricValues()
 
     def stop(self):
         self.state = 0
@@ -183,16 +188,10 @@ class Executor():
                 if timestamp > last_metric_date:
                     new_points.append({'timestamp':timestamp, 'value': point[stat_name]})
 
+
             # TODO: May be sort points by timestamp before add to database?
             if new_points:
                 self.db.addMetricValues(metric_uid, new_points, c)
 
-        # remove outdated data
-        self.clearOutdatedData(days=7)
-
         self.db.connection.commit()
 
-    def clearOutdatedData(self, days=7):
-        last_date = datetime.utcnow() - timedelta(days=days)
-        timestamp = datetime.strftime(last_date, '%Y-%m-%d')
-        self.db.deleteOldMetricValues(timestamp)

@@ -4,6 +4,7 @@ import sqlite3
 import os
 import sys
 import re
+from datetime import datetime, timedelta
 
 class DBAdapter():
 
@@ -343,12 +344,19 @@ class DBAdapter():
 
         return metric_values
 
-    def deleteOldMetricValues(self, last_time, cursor=None):
+    def deleteOldMetricValues(self, time_value=7, cursor=None):
+
         if not cursor:
             cursor = self.connection.cursor()
 
-        query = 'DELETE FROM metric_values WHERE date<"{0}"'.format(last_time)
+        if isinstance(time_value, int):
+            last_time = datetime.utcnow() - timedelta(days=time_value)
+            time_value = datetime.strftime(last_time, '%Y-%m-%d')
+
+        query = 'DELETE FROM metric_values WHERE date<"{0}"'.format(time_value)
         cursor.execute(query)
+
+        self.connection.commit()
 
     def reflectStructure(self):
 

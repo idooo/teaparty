@@ -74,3 +74,8 @@ class metricQueue(list):
         """ Renew queue to mark it as not ended"""
         self.ended = False
 
+    def __repr__(self):
+        return self.body
+
+    def __str__(self):
+        return str(self.body)

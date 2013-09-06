@@ -360,6 +360,7 @@ class ModelTestCase(unittest.TestCase):
             ]},
             {'uid': 1, 'values': [
                 {'timestamp': '1984-10-03 10:30', 'value': 0.62},
+                {'timestamp': '2100-10-03 10:30', 'value': 0.64},
             ]}
         ]
 
@@ -370,7 +371,11 @@ class ModelTestCase(unittest.TestCase):
 
         self.model.deleteOldMetricValues('2000-10-03 10:32')
         metric_values = self.model.getMetricValues(1, '1900', cursor)
-        self.assertEqual(len(metric_values), 2)
+        self.assertEqual(len(metric_values), 3)
+
+        self.model.deleteOldMetricValues(1)
+        metric_values = self.model.getMetricValues(1, '1900', cursor)
+        self.assertEqual(len(metric_values), 1)
 
     def test_reflectStructure(self):
         structure = self.model.reflectStructure()
