@@ -5,10 +5,14 @@ class metricQueue(list):
     Class to store tasks. Workers get task data from queue
     by reading data by cursor and moving this cursor after each read
     """
-    cursor = 0
-    body = []
+    cursor = None
+    body = None
+    ended = None
 
-    ended = False
+    def __init__(self):
+        self.body = []
+        self.ended = True
+        self.cursor = 0
 
     def add(self, obj_type, obj_code, metric):
         """ 
@@ -38,6 +42,7 @@ class metricQueue(list):
         }
 
         self.body.append(item.copy())
+        self.ended = False
 
         return True
 
