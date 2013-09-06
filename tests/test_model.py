@@ -307,8 +307,15 @@ class ModelTestCase(unittest.TestCase):
 
         self.model.connection.commit()
 
-        metric_values = self.model.getMetricValues(1, '2000', cursor)
+        metric_values = self.model.getMetricValues(1, '2000', cursor=cursor)
         self.assertEqual(3, len(metric_values))
+
+        metric_values = self.model.getMetricValues(1, '2000', limit=2, cursor=cursor)
+        self.assertEqual(2, len(metric_values))
+
+        metric_values = self.model.getMetricValues(1, '1900', sort='date ASC', limit=1, cursor=cursor)
+        self.assertEqual(metric_values[0][1], '1984-10-03 10:30')
+
 
     def test_getLastMetricValueDate(self):
         cursor = self.model.connection.cursor()
@@ -370,11 +377,11 @@ class ModelTestCase(unittest.TestCase):
         self.model.connection.commit()
 
         self.model.deleteOldMetricValues('2000-10-03 10:32')
-        metric_values = self.model.getMetricValues(1, '1900', cursor)
+        metric_values = self.model.getMetricValues(1, '1900', cursor=cursor)
         self.assertEqual(len(metric_values), 3)
 
         self.model.deleteOldMetricValues(1)
-        metric_values = self.model.getMetricValues(1, '1900', cursor)
+        metric_values = self.model.getMetricValues(1, '1900', cursor=cursor)
         self.assertEqual(len(metric_values), 1)
 
     def test_reflectStructure(self):

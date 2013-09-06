@@ -74,9 +74,15 @@ define([], function() {
             $scope.alarms = formatAlarms(data['alarms'])
 
             $scope.blocks = data['structure'];
+            $scope.metrics_values = data['metric_values'];
+
+            // Place init logic here
             console.log(data);
 
             progressbar.complete();
+
+            // Start queue for getting data
+
         });
 
         socket.on('response:get_data', function (data) {

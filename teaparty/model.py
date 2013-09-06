@@ -332,7 +332,7 @@ class DBAdapter():
 
         return value
 
-    def getMetricValues(self, metric_uid=None, date=None, cursor=None):
+    def getMetricValues(self, metric_uid=None, date=None, limit=None, sort='date', cursor=None):
         if not cursor:
             cursor = self.connection.cursor()
 
@@ -346,7 +346,10 @@ class DBAdapter():
             where.append('date>="' + date + '"')
 
         if where:
-            query = 'SELECT * FROM metric_values WHERE {0} ORDER BY date'.format(' AND '.join(where))
+            query = 'SELECT * FROM metric_values WHERE {0} ORDER BY {1} '.format(' AND '.join(where), sort)
+
+        if limit:
+            query += ' LIMIT ' + str(limit)
 
         rows = cursor.execute(query)
 
@@ -355,6 +358,19 @@ class DBAdapter():
                 metric_values.append(row)
 
         return metric_values
+
+    def getAllMetricValues(self, count=50, cursor=None):
+        if not cursor:
+            cursor = self.connection.cursor()
+
+        metrics = self.getMetrics()
+        result = {}
+
+        for str_metric_uid in metrics:
+            metric_values = self.getMetricValues(metrics[str_metric_uid]['uid'], limit=count, cursor=cursor)
+            result.update({str_metric_uid: metric_values})
+
+        return result
 
     def deleteOldMetricValues(self, time_value=7, cursor=None):
 

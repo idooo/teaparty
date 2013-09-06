@@ -29,26 +29,39 @@ class TeapartyNamespace(BaseNamespace):
 
     def on_init(self, message):
         data = {
+
+            # TODO: Cache this data:
+
             'instances': self.ec2.getInstances(),
             'alarms': self.cw.getAlarms(),
-            'structure': self.db.reflectStructure()
+            'structure': self.db.reflectStructure(),
+            'metric_values': self.db.getAllMetricValues()
         }
 
         self.response('response:init', data)
 
     def on_get_data(self, message):
-        if not 'get' in message:
-            return False
-
+        count = 100
+        date = None
         metric_uid = None
-        if not message['get'] in ['all']:
-            metric_uid = message['get']
 
         cursor = self.db.connection.cursor()
 
-        date = None
-        if 'time' in message:
-            date = message['time']
+        if 'count' in message:
+            count = int(message['count'])
 
-        results = self.db.getMetricValues(metric_uid=metric_uid, date=date, cursor=cursor)
+        if 'date' in message:
+            date = message['date']
+
+        if 'metric_uid' in message:
+            metric_uid = message['metric_uid']
+
+        results = self.db.getMetricValues(
+            metric_uid=metric_uid,
+            date=date,
+            sort='date',
+            limit=count,
+            cursor=cursor
+        )
+
         self.response('response:get_data', results)

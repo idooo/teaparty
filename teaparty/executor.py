@@ -89,8 +89,8 @@ class Executor():
         :type proc: method
         :param proc: method to execute
 
-        :type items: list
-        :param items: tasks to process
+        :type queue: list
+        :param queue: list of tasks to process
 
         :type latency: integer
         :param latency: Times in seconds between requests withing one thread
