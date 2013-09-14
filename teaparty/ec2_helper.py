@@ -1,5 +1,5 @@
 import boto.ec2
-from __init__ import cache
+from helpers import cache
 
 class EC2Helper():
 
@@ -11,11 +11,6 @@ class EC2Helper():
     STOPPING = 64
     TERMINATED = 48
     STOPPED = 80
-
-    # cache
-    C_INSTANCES = {
-
-    }
 
     def __init__(self, region):
         self.connect(region)
@@ -60,3 +55,7 @@ class EC2Helper():
 
         return result
 
+if __name__ == '__main__':
+    c = EC2Helper('ap-southeast-2')
+    print c.getInstances()
+    print c.getInstances()

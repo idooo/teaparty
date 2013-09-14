@@ -6,6 +6,7 @@ with Elastic Load Balancers
 """
 
 import boto.ec2.elb
+from helpers import cache
 
 class ELBHelper():
 
@@ -28,6 +29,7 @@ class ELBHelper():
             raise Exception('Invalid region name')
             return False
 
+    @cache
     def getLoadBalancers(self):
         """
         Get load balancers and format it in friendly format
