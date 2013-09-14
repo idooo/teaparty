@@ -29,9 +29,6 @@ class TeapartyNamespace(BaseNamespace):
 
     def on_init(self, message):
         data = {
-
-            # TODO: Cache this data:
-
             'instances': self.ec2.getInstances(),
             'alarms': self.cw.getAlarms(),
             'structure': self.db.reflectStructure(),

@@ -5,6 +5,7 @@ import os
 import sys
 import re
 from datetime import datetime, timedelta
+from helpers import cache
 
 class DBAdapter():
 
@@ -14,6 +15,10 @@ class DBAdapter():
     RE_INT = re.compile(r'\(int\)(.*)', re.I+re.U)
 
     DEFAULT_UNIT = 'Percent'
+
+    # TODO: Need to store max/min graph values for metrics
+    # TODO: Auto select max/min values for % (0,100)
+    # TODO: Add baseline
 
     format = [
         {
@@ -386,6 +391,7 @@ class DBAdapter():
 
         self.connection.commit()
 
+    @cache
     def reflectStructure(self):
 
         groups = self.getGroups()

@@ -23,3 +23,5 @@ teaparty/cover
 cover
 
 *.db
+
+*.confc

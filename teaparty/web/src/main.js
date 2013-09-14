@@ -5,6 +5,7 @@ require.config({
         text: 'vendor/require/text',
 
         // modules
+        d3: 'vendor/d3/d3.min',
         progressbar: 'src/components/ngProgress'
     },
 
@@ -15,17 +16,19 @@ require.config({
         'angular' : {
             'deps': ['socketio'],
             'exports' : 'angular'
-        }
+        },
     },
     priority: [
-        "angular"
+        "angular",
+        "d3"
     ]
 });
 
 require( [
     'angular',
     'src/app',
-    'src/routes'
+    'src/routes',
+    'd3'
 ], function(angular, app, routes) {
     'use strict';
     angular.bootstrap(document, [app['name']]);

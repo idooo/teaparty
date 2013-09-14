@@ -48,3 +48,25 @@ body {
   float: left;
   margin-right: 20px;
 }
+.minigraph {
+  width: 150px;
+  height: 60px;
+  vertical-align: bottom;
+}
+.minigraph path {
+  stroke-width: 1;
+  fill: none;
+}
+.minigraph path.data {
+  stroke: red;
+}
+.minigraph line {
+  stroke: black;
+}
+.minigraph line.data {
+  stroke: red;
+}
+.minigraph text {
+  font-family: Arial;
+  font-size: 9pt;
+}

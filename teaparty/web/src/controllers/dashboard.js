@@ -77,7 +77,6 @@ define([], function() {
             $scope.metrics_values = data['metric_values'];
 
             // Place init logic here
-            console.log(data);
 
             progressbar.complete();
 
