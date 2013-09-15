@@ -1,5 +1,9 @@
-define([], function() {
-    return ['$scope', '$http', 'socket', 'progressbar', function($scope, $http, socket, progressbar) {
+define([
+    'momentjs'
+], function() {
+    return [
+        '$scope', '$http', '$timeout', 'socket', 'progressbar',
+        function($scope, $http, $timeout, socket, progressbar) {
 
         progressbar.start();
 
@@ -63,6 +67,40 @@ define([], function() {
             return result
         };
 
+        var getLastDate = function(metric_values, index) {
+            var max_date = '';
+
+            for (var key in metric_values) {
+                if (metric_values.hasOwnProperty(key)) {
+                    metric_values[key].forEach(function(value) {
+                         if (max_date < value[index]) {
+                             max_date = value[index];
+                         }
+                    });
+                }
+            }
+
+            return moment.utc(max_date);
+        };
+
+        var startGlobalLoop = function(interval) {
+            $scope.globalLoop = function() {
+                $scope.cancelGlobalLoop = $timeout(function myFunction() {
+
+                    console.log('After 10 secs');
+
+                    $scope.cancelGlobalLoop = $timeout($scope.globalLoop, interval);
+                }, interval);
+            };
+
+            $scope.globalLoop();
+        };
+
+        $scope.cancelGlobalLoop = function() {
+            console.log($scope);
+            $timeout.cancel($scope.cancelGlobalLoop);
+        };
+
         $scope.blocks = [];
 
         // Request init data from server
@@ -75,6 +113,14 @@ define([], function() {
 
             $scope.blocks = data['structure'];
             $scope.metrics_values = data['metric_values'];
+
+            // Store last metric date
+            $scope.last_date = getLastDate($scope.metrics_values, 1);
+
+
+
+            startGlobalLoop(1000);
+
 
             // Place init logic here
 

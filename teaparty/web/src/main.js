@@ -6,6 +6,7 @@ require.config({
 
         // modules
         d3: 'vendor/d3/d3.min',
+        momentjs: 'vendor/momentjs/moment',
         progressbar: 'src/components/ngProgress'
     },
 
@@ -20,6 +21,7 @@ require.config({
     },
     priority: [
         "angular",
+        "momentjs",
         "d3"
     ]
 });

@@ -10,11 +10,16 @@ define([
 	var controllers = angular.module('teapartyApp.controllers', ['teapartyApp.services', 'ngProgress']);
 
     controllers.controller(
-        'DashboardController', ['$scope', '$injector', '$http', 'socket', 'progressbar',
-            function($scope, $injector, $http, socket, progressbar) {
+        'DashboardController', ['' +
+            '$scope', '$injector', '$http', '$timeout', 'socket', 'progressbar',
+            function($scope, $injector, $http, $timeout, socket, progressbar) {
                 require(['src/controllers/dashboard'], function(dashctrl) {
                     $injector.invoke(dashctrl, this, {
-                        '$scope': $scope, '$http': $http, 'socket': socket, 'progressbar': progressbar
+                        '$scope': $scope,
+                        '$http': $http,
+                        '$timeout': $timeout,
+                        'socket': socket,
+                        'progressbar': progressbar,
                     });
                 });
     }]);
