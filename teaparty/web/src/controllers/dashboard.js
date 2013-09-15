@@ -7,6 +7,14 @@ define([
 
         progressbar.start();
 
+        // Private ==========================================================
+
+        var refresh_time = 60,
+            global_loop_time = 2,
+            _date_index = 1,
+            _uid_index = 0,
+            date_format = "YYYY-MM-DD hh:mm:ss";
+
         var formatInstances = function(instances) {
             var running = [],
                 not_running = [],
@@ -67,28 +75,39 @@ define([
             return result
         };
 
-        var getLastDate = function(metric_values, index) {
+        var getLastDate = function(metric_values) {
             var max_date = '';
 
             for (var key in metric_values) {
                 if (metric_values.hasOwnProperty(key)) {
                     metric_values[key].forEach(function(value) {
-                         if (max_date < value[index]) {
-                             max_date = value[index];
+                         if (max_date < value[_date_index]) {
+                             max_date = value[_date_index];
                          }
                     });
                 }
             }
 
-            return moment.utc(max_date);
+            return moment.utc(max_date, date_format);
+        };
+
+        var globalLoop = function() {
+            var current_time = moment.utc();
+
+            console.log(current_time.format(date_format), $scope.next_date.format(date_format));
+            if (current_time > $scope.next_date) {
+                socket.emit('get_data', {
+                    'date': $scope.next_date.format(date_format)
+                });
+                $scope.next_date = current_time.add('seconds', refresh_time);
+            }
         };
 
         var startGlobalLoop = function(interval) {
+            interval = interval * 1000;
             $scope.globalLoop = function() {
                 $scope.loopTimer = $timeout(function myFunction() {
-
-                    console.log('After 10 secs');
-
+                    globalLoop();
                     $scope.loopTimer = $timeout($scope.globalLoop, interval);
                 }, interval);
             };
@@ -96,32 +115,32 @@ define([
             $scope.globalLoop();
         };
 
+        // Public scope =====================================================
+
         $scope.cancelGlobalAppLoop = function() {
             $timeout.cancel($scope.loopTimer);
         };
 
         $scope.blocks = [];
 
-        // Request init data from server
-        socket.emit('init');
+        // Sockets ==========================================================
 
+        /*
+            Init logic
+         */
         socket.on('response:init', function (data) {
 
             $scope.instances = formatInstances(data['instances']);
-            $scope.alarms = formatAlarms(data['alarms'])
+            $scope.alarms = formatAlarms(data['alarms']);
 
             $scope.blocks = data['structure'];
             $scope.metrics_values = data['metric_values'];
 
             // Store last metric date
-            $scope.last_date = getLastDate($scope.metrics_values, 1);
+            $scope.last_date = getLastDate($scope.metrics_values);
+            $scope.next_date = $scope.last_date.add('seconds', refresh_time);
 
-
-
-            startGlobalLoop(1000);
-
-
-            // Place init logic here
+            startGlobalLoop(global_loop_time);
 
             progressbar.complete();
 
@@ -129,13 +148,29 @@ define([
 
         });
 
+        /*
+            Get data logic
+         */
         socket.on('response:get_data', function (data) {
-            console.log(data);
+
+            if (!data.length) {
+                return false;
+            }
+
+            var max_date = '';
+
+            data.forEach(function(value) {
+                $scope.metrics_values[value[_uid_index].toString()].push(value);
+                if (max_date < value[_date_index]) {
+                    max_date = value[_date_index]
+                }
+            });
+
+            $scope.last_date = max_date;
+
         });
 
-        $scope.getData = function() {
-            socket.emit('get_data', {'get': 'all'});
-        };
+        socket.emit('init');
 
         $scope.$apply();
     }];

@@ -38,7 +38,7 @@ class TeapartyNamespace(BaseNamespace):
         self.response('response:init', data)
 
     def on_get_data(self, message):
-        count = 100
+        count = 1000
         date = None
         metric_uid = None
 
