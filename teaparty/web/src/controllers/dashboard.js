@@ -85,20 +85,19 @@ define([
 
         var startGlobalLoop = function(interval) {
             $scope.globalLoop = function() {
-                $scope.cancelGlobalLoop = $timeout(function myFunction() {
+                $scope.loopTimer = $timeout(function myFunction() {
 
                     console.log('After 10 secs');
 
-                    $scope.cancelGlobalLoop = $timeout($scope.globalLoop, interval);
+                    $scope.loopTimer = $timeout($scope.globalLoop, interval);
                 }, interval);
             };
 
             $scope.globalLoop();
         };
 
-        $scope.cancelGlobalLoop = function() {
-            console.log($scope);
-            $timeout.cancel($scope.cancelGlobalLoop);
+        $scope.cancelGlobalAppLoop = function() {
+            $timeout.cancel($scope.loopTimer);
         };
 
         $scope.blocks = [];
