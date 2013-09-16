@@ -10,7 +10,8 @@ and start jobs again.
 import threading
 from time import sleep
 from datetime import datetime
-from teaparty import DBAdapter, metricQueue
+from teaparty import DBAdapter
+import logging
 
 
 class ExecutorThread(threading.Thread):
@@ -48,9 +49,8 @@ class ExecutorThread(threading.Thread):
                     try:
                         datapoints = self.parent.proc(item['name'], item['namespace'], item['dimensions'], item['unit'])
                         self.parent.result_pool.append({str(item['uid']): datapoints})
-                    except Exception:
-                        # TODO: log error somewhere
-                        pass
+                    except Exception, e:
+                        self.parent.logger.warn('Thread execution error: ' + str(e))
 
                     sleep(self.parent.latency)
 
@@ -99,6 +99,9 @@ class Executor():
         :param debug: Debug mode
         """
 
+        self.logger = logging.getLogger('tparty.executor')
+        self.logger.info('Teaparty executor was created, debug mode = ' + str(bool(debug)))
+
         self.local_queue = queue
         self.latency = latency
         self.proc = proc
@@ -122,6 +125,8 @@ class Executor():
 
     def execute(self, threads):
         """ Start threads. Get and save data in infinite loop """
+
+        self.logger.info('Executor start his job by ' + str(threads) + ' threads')
 
         if threads <= 0:
             raise Exception("Need more threads!")

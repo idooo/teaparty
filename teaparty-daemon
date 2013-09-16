@@ -4,6 +4,7 @@ import sys
 from optparse import OptionParser
 from boto.ec2 import regions
 from teaparty import CloudWatchHelper, ELBHelper, DBAdapter, Executor, metricQueue
+import logging
 
 # TODO: Unit tests
 
@@ -16,7 +17,12 @@ class MetricDaemon():
 
     executor = None
 
-    def __init__(self, region, config_filename, latency=2, waiting=15, debug=False):
+    def __init__(self, region, config_filename, latency=2, waiting=15, debug=False, log_file='/var/log/teaparty_server.log'):
+
+        self.logger = logging.basicConfig(filename=log_file, format='%(asctime)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
+        self.logger = logging.getLogger('tparty')
+        self.logger.info('Teaparty daemon was created')
+
         self.cw = CloudWatchHelper(region)
         self.elb = ELBHelper(region)
 

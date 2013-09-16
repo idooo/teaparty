@@ -6,6 +6,7 @@ import sys
 import re
 from datetime import datetime, timedelta
 from helpers import cache
+import logging
 
 class DBAdapter():
 
@@ -44,6 +45,9 @@ class DBAdapter():
     ]
 
     def __init__(self, dbname='teaparty.db'):
+
+        self.logger = logging.getLogger('tparty.model')
+
         if dbname == ':memory:':
             self.connection = sqlite3.connect(dbname)
         else:
@@ -125,8 +129,7 @@ class DBAdapter():
                 })
 
             else:
-                # TODO: log error somewhere
-                pass
+                self.logger.warn('Metric not found: __retriveFormattedMetrics, ' + str_metric_id)
 
         return metrics
 
@@ -419,8 +422,7 @@ class DBAdapter():
                     })
 
                 else:
-                    # TODO: log this!
-                    pass
+                    self.logger.warn('ELB not found: reflectStructure, ' + str(group['elb']))
 
             instances = []
             for instance_id in group['instances']:
