@@ -67,23 +67,31 @@ body {
   height: 60px;
   vertical-align: bottom;
 
-  path {
-    stroke-width: 1;
+  .axis path,
+  .axis line {
     fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
   }
 
-  path.data { stroke: red; }
-
-  line {
-    stroke: black;
+  .x.axis path {
+    display: none;
   }
 
-  line.data {
-    stroke: red;
+  .line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
   }
 
-  text {
-    font-family: Arial;
-    font-size: 9pt;
+  .overlay {
+    fill: none;
+    pointer-events: all;
   }
+
+  .focus circle {
+    fill: none;
+    stroke: steelblue;
+  }
+
 }

@@ -53,20 +53,25 @@ body {
   height: 60px;
   vertical-align: bottom;
 }
-.minigraph path {
-  stroke-width: 1;
+.minigraph .axis path,
+.minigraph .axis line {
   fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
 }
-.minigraph path.data {
-  stroke: red;
+.minigraph .x.axis path {
+  display: none;
 }
-.minigraph line {
-  stroke: black;
+.minigraph .line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
 }
-.minigraph line.data {
-  stroke: red;
+.minigraph .overlay {
+  fill: none;
+  pointer-events: all;
 }
-.minigraph text {
-  font-family: Arial;
-  font-size: 9pt;
+.minigraph .focus circle {
+  fill: none;
+  stroke: steelblue;
 }
