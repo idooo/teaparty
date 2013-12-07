@@ -10,7 +10,7 @@ define([
         // Private ==========================================================
 
         var refresh_time = 60,
-            global_loop_time = 2,
+            global_loop_time = 10,
             _date_index = 1,
             _uid_index = 0,
             date_format = "YYYY-MM-DD hh:mm:ss";
@@ -91,10 +91,11 @@ define([
             return moment.utc(max_date, date_format);
         };
 
+        // Loop
+
         var globalLoop = function() {
             var current_time = moment.utc();
 
-            console.log(current_time.format(date_format), $scope.next_date.format(date_format));
             if (current_time > $scope.next_date) {
                 socket.emit('get_data', {
                     'date': $scope.next_date.format(date_format)
@@ -115,6 +116,39 @@ define([
             $scope.globalLoop();
         };
 
+        var getData = function(data) {
+            var max_date = '';
+
+            if (!data.length) {
+                return false;
+            }
+
+            data.forEach(function(value) {
+                $scope.metrics_values[value[_uid_index].toString()].push(value);
+                if (max_date < value[_date_index]) {
+                    max_date = value[_date_index]
+                }
+            });
+
+            $scope.last_date = max_date;
+        };
+
+        // Mocks ============================================================
+
+        window.get = function() {
+            var data = [
+                [1, '2013-09-15 00:54:00', 10.029815],
+                [1, '2013-09-15 00:55:00', 20.029815]
+            ];
+
+            getData(data);
+        };
+
+        window.scope = function() {
+            console.log($scope.metrics_values);
+            console.log($scope);
+        };
+
         // Public scope =====================================================
 
         $scope.cancelGlobalAppLoop = function() {
@@ -122,6 +156,11 @@ define([
         };
 
         $scope.blocks = [];
+        $scope.graphs = [];
+
+        $scope.registerGraph = function(graph) {
+            console.log(graph);
+        };
 
         // Sockets ==========================================================
 
@@ -151,27 +190,11 @@ define([
         /*
             Get data logic
          */
-        socket.on('response:get_data', function (data) {
-
-            if (!data.length) {
-                return false;
-            }
-
-            var max_date = '';
-
-            data.forEach(function(value) {
-                $scope.metrics_values[value[_uid_index].toString()].push(value);
-                if (max_date < value[_date_index]) {
-                    max_date = value[_date_index]
-                }
-            });
-
-            $scope.last_date = max_date;
-
-        });
+        socket.on('response:get_data', getData);
 
         socket.emit('init');
 
         $scope.$apply();
     }];
 });
+

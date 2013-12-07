@@ -11,13 +11,14 @@ define(['angular', 'src/services', 'momentjs'], function(angular, services) {
             return {
                 restrict: 'A',
                 scope: {
-                    values:'=values',
-                    min: '=min',
-                    max: '=max'
+                    values:'=',
+                    min: '=',
+                    max: '='
                 },
+                transclude: false,
                 template: '<div class="minigraph"></div>',
                 replace: true,
-                link: function postLink(scope, iElement, iAttrs) {
+                link: function(scope, iElement, iAttrs) {
 
                     var width = 150,
                         height = 40;
@@ -27,11 +28,9 @@ define(['angular', 'src/services', 'momentjs'], function(angular, services) {
                     scope.values.forEach(function(value){
                         data.push({
                             'y': value[2],
-                            'x': i++ //moment.utc(value[1], "YYYY-MM-DD hh:mm:ss").toDate()
+                            'x': moment.utc(value[1], "YYYY-MM-DD hh:mm:ss").unix()
                         });
                     });
-
-                    console.log(data);
 
                     if (typeof scope.min === 'undefined') {
                         scope.min = d3.min(data)
@@ -49,7 +48,6 @@ define(['angular', 'src/services', 'momentjs'], function(angular, services) {
                         height: height,
                         max: scope.max,
                         min: scope.min,
-                        //renderer: 'line',
                         onData: function(d) {  d[0].data[0].y = 80; return d; },
                         series: [{
                             color: 'steelblue',
@@ -64,7 +62,7 @@ define(['angular', 'src/services', 'momentjs'], function(angular, services) {
 
                     graph.render();
 
-
+                    scope.$watch('values',      function() {console.log('pew') });
 
                 }
         };
