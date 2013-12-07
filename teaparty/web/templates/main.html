@@ -25,7 +25,7 @@
         <div class="metrics">
             <div ng-repeat="metric in block.metrics">
                 {{metric.units}} {{metric.caption.0}}
-                <div minigraph values=metrics_values[metric.uid] min=0 max=1></div>
+                <div minigraph uid=metric.uid graphs=graphs values=metrics_values[metric.uid] min=0 max=1></div>
             </div>
         </div>
     </div>
@@ -37,7 +37,7 @@
         <div class="metrics">
             <div ng-repeat="metric in instance.metrics">
                 {{metric.units}} {{metric.caption}}
-                <div minigraph values=metrics_values[metric.uid] min=0 max=100></div>
+                <div minigraph uid=metric.uid graphs=graphs values=metrics_values[metric.uid] min=0 max=100></div>
             </div>
         </div>
     </div>

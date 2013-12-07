@@ -13,13 +13,14 @@ define(['angular', 'src/services', 'momentjs'], function(angular, services) {
                 scope: {
                     values:'=',
                     min: '=',
-                    max: '='
+                    max: '=',
+                    graphs: '=',
+                    uid: '='
                 },
                 transclude: false,
                 template: '<div class="minigraph"></div>',
                 replace: true,
                 link: function(scope, iElement, iAttrs) {
-
                     var width = 150,
                         height = 40;
 
@@ -62,7 +63,7 @@ define(['angular', 'src/services', 'momentjs'], function(angular, services) {
 
                     graph.render();
 
-                    scope.$watch('values',      function() {console.log('pew') });
+                    scope.graphs['' + scope.uid] = graph;
 
                 }
         };

@@ -15,6 +15,13 @@ define([
             _uid_index = 0,
             date_format = "YYYY-MM-DD hh:mm:ss";
 
+        var formatData = function(value) {
+            return {
+                'y': value[2],
+                'x': moment.utc(value[1], "YYYY-MM-DD hh:mm:ss").unix()
+            }
+        };
+
         var formatInstances = function(instances) {
             var running = [],
                 not_running = [],
@@ -124,10 +131,16 @@ define([
             }
 
             data.forEach(function(value) {
-                $scope.metrics_values[value[_uid_index].toString()].push(value);
+                var graph_id = value[_uid_index].toString(),
+                    graph = $scope.graphs[graph_id];
+
+                $scope.metrics_values[graph_id].push(value);
+                graph.series[0].data.push(formatData(value));
+
                 if (max_date < value[_date_index]) {
                     max_date = value[_date_index]
                 }
+
             });
 
             $scope.last_date = max_date;
@@ -135,19 +148,18 @@ define([
 
         // Mocks ============================================================
 
-        window.get = function() {
+        window.get = function(graph_id) {
             var data = [
-                [1, '2013-09-15 00:54:00', 10.029815],
-                [1, '2013-09-15 00:55:00', 20.029815]
+                [1, moment().format(date_format), Math.random()*100]
             ];
 
+            var graph = $scope.graphs[graph_id.toString()];
+            graph.series[0].data = []
+
             getData(data);
+            graph.update();
         };
 
-        window.scope = function() {
-            console.log($scope.metrics_values);
-            console.log($scope);
-        };
 
         // Public scope =====================================================
 
@@ -156,11 +168,7 @@ define([
         };
 
         $scope.blocks = [];
-        $scope.graphs = [];
-
-        $scope.registerGraph = function(graph) {
-            console.log(graph);
-        };
+        $scope.graphs = {};
 
         // Sockets ==========================================================
 
