@@ -28,4 +28,8 @@ cover
 
 *.db
 
+build/
+dist/
+
 teaparty/db/teaparty.db
+teaparty.egg-info*

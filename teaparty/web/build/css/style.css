@@ -51,27 +51,4 @@ body {
 .minigraph {
   width: 150px;
   height: 60px;
-  vertical-align: bottom;
-}
-.minigraph .axis path,
-.minigraph .axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-.minigraph .x.axis path {
-  display: none;
-}
-.minigraph .line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
-.minigraph .overlay {
-  fill: none;
-  pointer-events: all;
-}
-.minigraph .focus circle {
-  fill: none;
-  stroke: steelblue;
 }
