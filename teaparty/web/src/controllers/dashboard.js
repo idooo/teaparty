@@ -95,7 +95,13 @@ define([
                 }
             }
 
-            return moment.utc(max_date, date_format);
+            if (!max_date) {
+                return 0
+            }
+            else {
+                return moment.utc(max_date, date_format);
+            }
+
         };
 
         // Loop

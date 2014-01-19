@@ -9,9 +9,10 @@ and start jobs again.
 
 import threading
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 from teaparty import DBAdapter
 import logging
+import random
 
 
 class ExecutorThread(threading.Thread):
@@ -84,7 +85,7 @@ class Executor():
     # debug variable for testing
     debug_dry_run = False
 
-    def __init__(self, proc, queue, dbname='teaparty.db', latency=2, waiting=15, debug=False):
+    def __init__(self, proc, queue, dbname='teaparty.db', latency=2, waiting=15, debug=False, test=False):
         """
         :type proc: method
         :param proc: method to execute
@@ -100,7 +101,7 @@ class Executor():
         """
 
         self.logger = logging.getLogger('tparty.executor')
-        self.logger.info('Teaparty executor was created, debug mode = ' + str(bool(debug)))
+        self.logger.info('Teaparty executor was created, debug mode = ' + str(bool(debug)) + 'test mode = ' + str(bool(test)))
 
         self.local_queue = queue
         self.latency = latency
@@ -112,6 +113,24 @@ class Executor():
 
         # To prevent strptime thread errors
         datetime.strptime('1000', '%Y')
+
+        # Test data procedure
+        if test:
+            self.proc = self.__testProc
+
+    def __testProc(self, metric_name, namespace, dimensions, unit, statistics='Average', minutes=15, period=60):
+        result = []
+
+        for i in range(0,10):
+            point = {
+                'Timestamp': datetime.utcnow() - timedelta(minutes=i),
+                'Average': random.uniform(10, 50),
+                'Unit': 'Percent'
+            }
+            result.append(point)
+
+        sleep(2)
+        return result
 
     def __getMetricStatName(self, datapoint):
         for key in datapoint.keys():
@@ -193,7 +212,6 @@ class Executor():
                 timestamp = datetime.strftime(point['Timestamp'], '%Y-%m-%d %H:%M:%S')
                 if timestamp > last_metric_date:
                     new_points.append({'timestamp':timestamp, 'value': point[stat_name]})
-
 
             # TODO: May be sort points by timestamp before add to database?
             if new_points:

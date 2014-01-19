@@ -44,7 +44,7 @@ class DBAdapter():
         }
     ]
 
-    def __init__(self, dbname='teaparty.db'):
+    def __init__(self, dbname='teaparty.db', flush=False):
 
         self.logger = logging.getLogger('tparty.model')
 
@@ -54,15 +54,18 @@ class DBAdapter():
             _ROOT = os.path.abspath(os.path.dirname(__file__))
             self.connection = sqlite3.connect(os.path.join(_ROOT, 'db', dbname))
 
-        self.__initTables()
+        self.__initTables(flush)
         self.getCounters()
 
-    def __initTables(self):
+    def __initTables(self, flush_existing=False):
         c = self.connection.cursor()
         for table in self.format:
             fields = ','.join(table['fields'])
-            query = 'create table if not exists {0} ({1})'.format(table['name'], fields)
 
+            if flush_existing:
+                c.execute('drop table {0}'.format(table['name']))
+
+            query = 'create table if not exists {0} ({1})'.format(table['name'], fields)
             c.execute(query)
 
         self.connection.commit()
