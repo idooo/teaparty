@@ -33,37 +33,26 @@ define(['angular', 'src/services', 'momentjs'], function(angular, services) {
                         });
                     });
 
-                    if (typeof scope.min === 'undefined') {
-                        scope.min = d3.min(data)
-                    }
+                    console.log(data);
 
-                    if (typeof scope.max === 'undefined') {
-                        scope.max = d3.max(data)
-                    }
-
-                    // ===========================================
-
-                    var graph = new Rickshaw.Graph( {
-                        element: iElement[0],
-                        width: width,
-                        height: height,
-                        max: scope.max,
-                        min: scope.min,
-                        onData: function(d) {  d[0].data[0].y = 80; return d; },
-                        series: [{
-                            color: 'steelblue',
-                            data: data
-                        }]
+                    window.__.deadSimpleGraph(iElement[0], data, {
+                        'width': 100,
+                        'height': 50,
+                        'point_radius': 1
                     });
 
-                    var hoverDetail = new Rickshaw.Graph.HoverDetail( {
-                        graph: graph,
-                        yFormatter: function(y) { return Math.round(y * 100) / 100 + " %" }
-                    } );
+                    setInterval(function(){
+                        if (Math.random() > 0.3) {
+                            var x = new Date().getTime(),
+                                y = Math.random()* Math.random()*100;
 
-                    graph.render();
+                            iElement[0].graph.addPoint({'x': x, 'y': y});
+                        }
 
-                    scope.graphs['' + scope.uid] = graph;
+                        iElement[0].graph.update();
+                    }, 1000);
+
+                    // scope.graphs['' + scope.uid] = graph;
 
                 }
         };
