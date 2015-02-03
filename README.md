@@ -1,11 +1,6 @@
 Teaparty AWS dashboard
 ========
 
+This was a realtime Amazon Web Services concept written on Python and AngularJS. 
 
-This is a realtime Amazon Web Services clean and tasty dashboard written on Python and AngularJS. 
-
-Coming soon...
-
-Concept (it will look like):
-
-[![](http://shteinikov.com/files/teaparty/concept_m.jpg)](http://shteinikov.com/files/teaparty/concept.jpg)
+All the activity and development now in [Teaparty 2 project](https://github.com/idooo/teaparty2)
